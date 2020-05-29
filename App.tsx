@@ -26,9 +26,13 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import Snowboy from "react-native-snowboy";
+
 declare var global: {HermesInternal: null | {}};
 
 const App = () => {
+  console.log(Snowboy)
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
