@@ -12,17 +12,32 @@ import React from 'react';
 import {
   View,
   Text,
+  Button,
+  Alert,
 } from 'react-native';
 
-import Snowboy from "react-native-snowboy";
+import snowboy from "react-native-snowboy";
 
 const App = () => {
   //Call the function here
-  //Snowboy.sampleMethod()
-
+ let click = function(){
+   snowboy.initHotword()
+	.then((res)=> {
+		console.log(res)
+    snowboy.start();
+	})
+	.catch((err)=> {
+		console.log(err)
+	})
+ };
+  
   return (
     <View>
       <Text>Hi</Text>
+      <Button
+          title="Press me"
+          onPress={() => click()}
+        />
     </View>
   );
 };

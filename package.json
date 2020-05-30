@@ -13,7 +13,7 @@
     "@react-native-community/voice": "^1.1.1",
     "react": "16.9.0",
     "react-native": "0.61.5",
-    "react-native-snowboy": "https://github.com/Gamal-Khaled/react-native-snowboy"
+    "react-native-snowboy": "https://github.com/Hossam777/react-native-snowboy.git"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",
