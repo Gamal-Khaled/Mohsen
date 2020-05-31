@@ -21,13 +21,16 @@ import snowboy from "react-native-snowboy";
 const App = () => {
   //Call the function here
  let click = function(){
-   snowboy.initHotword()
+  snowboy.initHotword()
 	.then((res)=> {
 		console.log(res)
-    snowboy.start();
+    snowboy.startRecording();
 	})
 	.catch((err)=> {
 		console.log(err)
+	})
+  snowboy.addEventListener("msg-active", (e) => {
+		console.log("hehehe")
 	})
  };
   
