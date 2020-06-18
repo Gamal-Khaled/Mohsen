@@ -963,7 +963,7 @@
     eslint-plugin-react-native "3.6.0"
     prettier "1.16.4"
 
-"@react-native-community/voice@^1.1.1":
+"@react-native-community/voice@^1.0.0":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@react-native-community/voice/-/voice-1.1.1.tgz#7baa50f7eb7cf859df7f7258f92a4b457380d033"
   integrity sha512-zRzUtxOTNnD+nYKamR3hqFdan/1eEgcBFiOcHEYmWAqSG/Ze0ty83OfCt+bdD7gSSYTXudqHwyqASNZGx9vw7Q==
