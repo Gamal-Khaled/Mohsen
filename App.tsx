@@ -13,34 +13,44 @@ import {
   View,
   Text,
   Button,
-  Alert,
 } from 'react-native';
 
 import snowboy from "react-native-snowboy";
+import FetchWrapper from './src/service/FetchWrapper';
 
 const App = () => {
   //Call the function here
- let click = function(){
-  snowboy.initHotword()
-	.then((res)=> {
-		console.log(res)
-    snowboy.startRecording();
-	})
-	.catch((err)=> {
-		console.log(err)
-	})
-  snowboy.addEventListener("msg-active", (e) => {
-		console.log("hehehe")
-	})
- };
-  
+  let click = function () {
+    snowboy.initHotword()
+      .then((res) => {
+        console.log(res)
+        snowboy.startRecording();
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+    snowboy.addEventListener("msg-active", (e) => {
+      console.log("hehehe")
+    })
+  };
+
+  const sendToDB = () => {
+    const fetchWrapper = new FetchWrapper('https://cs495-705cf.firebaseio.com');
+
+    fetchWrapper.post("/sendToDBTest.json", { data: 'stort' });
+  }
+
   return (
     <View>
       <Text>Hi</Text>
       <Button
-          title="Press me"
-          onPress={() => click()}
-        />
+        title="Press me"
+        onPress={() => click()}
+      />
+      <Button
+        title="Send data to DB"
+        onPress={sendToDB}
+      />
     </View>
   );
 };
