@@ -9,7 +9,8 @@ class SnowboyService {
     initialize = async () => {
         const permissions = await PermissionsAndroid.requestMultiple([
             PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
         ])
         let granted = true;
         Object.keys(permissions).forEach(permissionKey => {
@@ -25,21 +26,20 @@ class SnowboyService {
     start = () => {
         if (this.initialized && !this.recording) {
             this.recording = true;
-            snowboy.startRecording();
+            return snowboy.startRecording();
         }
     }
 
     stop = () => {
         if (this.initialized && this.recording) {
             this.recording = false;
-            snowboy.stopRecording();
+            return snowboy.stopRecording();
         }
     }
 
     addEventListener = (event: string, callback: (e: any) => void) => {
-        console.log("addEventListener", this.initialized, snowboy.addEventListener)
         if (this.initialized) {
-            snowboy.addEventListener(event, callback);
+            return snowboy.addEventListener(event, callback);
         }
     }
 }

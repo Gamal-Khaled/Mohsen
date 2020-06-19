@@ -9,30 +9,30 @@ import Voice, {
 } from '@react-native-community/voice';
 
 export interface SpeechToTextEventsHandlers {
-    onSpeechStartHandler?: (event: SpeechStartEvent) => void;
-    onSpeechEndHandler?: (event: SpeechEndEvent) => void;
-    onSpeechResultsHandler?: (event: SpeechResultsEvent) => void;
-    onSpeechPartialResultsHandler?: (event: SpeechResultsEvent) => void;
-    onSpeechVolumeChangedHandler?: (event: SpeechVolumeChangeEvent) => void;
-    onSpeechErrorHandler?: (event: SpeechErrorEvent) => void;
-    onSpeechRecognizedHandler?: (event: SpeechRecognizedEvent) => void;
+    onSpeechStartHandler: (event: SpeechStartEvent) => void;
+    onSpeechEndHandler: (event: SpeechEndEvent) => void;
+    onSpeechResultsHandler: (event: SpeechResultsEvent) => void;
+    onSpeechPartialResultsHandler: (event: SpeechResultsEvent) => void;
+    onSpeechVolumeChangedHandler: (event: SpeechVolumeChangeEvent) => void;
+    onSpeechErrorHandler: (event: SpeechErrorEvent) => void;
+    onSpeechRecognizedHandler: (event: SpeechRecognizedEvent) => void;
 }
 
 class SpeechToText {
     initialize = (eventsHandlers: SpeechToTextEventsHandlers) => {
-        eventsHandlers.onSpeechStartHandler && (Voice.onSpeechStart = eventsHandlers.onSpeechStartHandler);
-        eventsHandlers.onSpeechEndHandler && (Voice.onSpeechEnd = eventsHandlers.onSpeechEndHandler);
-        eventsHandlers.onSpeechResultsHandler && (Voice.onSpeechResults = eventsHandlers.onSpeechResultsHandler);
-        eventsHandlers.onSpeechPartialResultsHandler && (Voice.onSpeechPartialResults = eventsHandlers.onSpeechPartialResultsHandler);
-        eventsHandlers.onSpeechVolumeChangedHandler && (Voice.onSpeechVolumeChanged = eventsHandlers.onSpeechVolumeChangedHandler);
-        eventsHandlers.onSpeechErrorHandler && (Voice.onSpeechError = eventsHandlers.onSpeechErrorHandler);
-        eventsHandlers.onSpeechRecognizedHandler && (Voice.onSpeechRecognized = eventsHandlers.onSpeechRecognizedHandler);
+        Voice.onSpeechStart = eventsHandlers.onSpeechStartHandler;
+        Voice.onSpeechEnd = eventsHandlers.onSpeechEndHandler;
+        Voice.onSpeechResults = eventsHandlers.onSpeechResultsHandler;
+        Voice.onSpeechPartialResults = eventsHandlers.onSpeechPartialResultsHandler;
+        Voice.onSpeechVolumeChanged = eventsHandlers.onSpeechVolumeChangedHandler;
+        Voice.onSpeechError = eventsHandlers.onSpeechErrorHandler;
+        Voice.onSpeechRecognized = eventsHandlers.onSpeechRecognizedHandler;
     }
 
     on = (event: string, handler: (event: any) => void) => Voice[event] = handler;
 
     isAvailable = () => Voice.isAvailable();
-    start = (locale: string) => Voice.start(locale);
+    start = (locale: string = "en-US") => Voice.start(locale);
     stop = () => Voice.stop();
     cancel = () => Voice.cancel();
     destroy = () => Voice.destroy();
