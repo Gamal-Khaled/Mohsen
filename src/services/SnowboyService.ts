@@ -42,6 +42,10 @@ class SnowboyService {
             return snowboy.addEventListener(event, callback);
         }
     }
+
+    removeAllListeners = (event: string) => {
+        return snowboy.removeAllListeners(event);
+    }
 }
 
 export default new SnowboyService();

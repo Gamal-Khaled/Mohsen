@@ -13,6 +13,7 @@
     "@react-native-community/voice": "^1.0.0",
     "react": "16.9.0",
     "react-native": "0.61.5",
+    "react-native-calendar-events": "^1.7.3",
     "react-native-snowboy": "https://github.com/Hossam777/react-native-snowboy.git"
   },
   "devDependencies": {

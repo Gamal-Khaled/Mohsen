@@ -1,0 +1,1 @@
+export const baseURL = "https://mohsen-service.herokuapp.com/predict";
