@@ -33,7 +33,11 @@ const App = () => {
 		console.log("hehehe")
 	})
  };
-  
+ let stop = function(){
+  snowboy.stopRecording();
+	console.log("stopped");
+ };
+
   return (
     <View>
       <Text>Hi</Text>
@@ -41,6 +45,10 @@ const App = () => {
           title="Press me"
           onPress={() => click()}
         />
+        <Button
+        title="stop"
+        onPress={() => stop()}
+      />
     </View>
   );
 };
