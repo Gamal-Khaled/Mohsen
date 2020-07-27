@@ -34,6 +34,9 @@ const App = () => {
     })
   };
 
+  let stopService = function () {
+    snowboy.stopRecording();
+  };
   const sendToDB = () => {
     const fetchWrapper = new FetchWrapper('https://cs495-705cf.firebaseio.com');
 
@@ -46,6 +49,10 @@ const App = () => {
       <Button
         title="Press me"
         onPress={() => click()}
+      />
+      <Button
+        title="Stop Service"
+        onPress={() => stopService()}
       />
       <Button
         title="Send data to DB"

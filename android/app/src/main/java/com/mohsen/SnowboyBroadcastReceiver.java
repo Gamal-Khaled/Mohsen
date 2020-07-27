@@ -17,8 +17,13 @@ public class SnowboyBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Toast.makeText(context, "Snowboy Broadcast", Toast.LENGTH_LONG).show();
-        showNotification(context);
-        //context.startService(new Intent(context, SnowboyService.class));
+        //showNotification(context);
+        Intent i = new Intent(context, SnowboyService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(i);
+        } else {
+            context.startService(i);
+        }
     }
     private void showNotification(Context context) {
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
