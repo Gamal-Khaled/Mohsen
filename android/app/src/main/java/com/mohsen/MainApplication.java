@@ -46,8 +46,8 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate() {
     super.onCreate();
 
-      getApplicationContext().startService(new Intent(getApplicationContext(), SnowboyService.class));
-      Toast.makeText(getApplicationContext(), "started", Toast.LENGTH_SHORT).show();
+      //getApplicationContext().startService(new Intent(getApplicationContext(), SnowboyService.class));
+      //Toast.makeText(getApplicationContext(), "started", Toast.LENGTH_SHORT).show();
 
     SoLoader.init(this, /* native exopackage */ false);
     initializeFlipper(this); // Remove this line if you don't want Flipper enabled
