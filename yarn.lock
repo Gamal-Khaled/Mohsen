@@ -5169,6 +5169,11 @@ react-native-contacts@^5.2.5:
   resolved "https://registry.yarnpkg.com/react-native-contacts/-/react-native-contacts-5.2.5.tgz#e4acd8deb5e0ba987df54504a6d1822697c5cb65"
   integrity sha512-KmPaYtCRxDvTIItktGc9PruZN/l1H+ATlR18ge7R/XUVXq4QNLHeFx7uTYqL9p0N48+Xaca7+Ga/FsItNa0hcg==
 
+react-native-phone-call@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/react-native-phone-call/-/react-native-phone-call-1.0.9.tgz#4468ec6f95856557fbff9bd69a0db04b54c35e1d"
+  integrity sha512-OPWYg8qeWNG/U4bWGMAKcQTH/ifqJnsvUPCH4lOkvWFHbQS3fbH5M8rFhXCzcfS0GVNzHhZX9ZByMM368TFAUQ==
+
 "react-native-snowboy@https://github.com/Hossam777/react-native-snowboy.git":
   version "1.0.0"
   resolved "https://github.com/Hossam777/react-native-snowboy.git#304b9001066469fde90ac8b12cacd5ba5e2cc8e3"

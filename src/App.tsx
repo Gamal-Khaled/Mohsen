@@ -6,6 +6,7 @@ import SpeechToTextService from 'services/SpeechToTextService';
 import ChatScreen from 'screens/ChatScreen/ChatScreen';
 import MLModeslsAPIHandler from 'apis/MLModeslsAPIHandler';
 import ChatMessage from 'models/ChatMessage';
+import ContactsService from 'services/ContactsService';
 
 interface State {
     chat: ChatMessage[];
@@ -34,13 +35,15 @@ export default class App extends PureComponent<{}, State> {
             onSpeechRecognizedHandler: this.onSpeechRecognizedHandler.bind(this),
         })
 
-        SnowboyService.start();
+        // SnowboyService.start();
 
         SnowboyService.removeAllListeners("msg-active");
         SnowboyService.addEventListener("msg-active", async (e: any) => {
             await SnowboyService.stop();
             SpeechToTextService.start();
         });
+
+        ContactsService.initialize();
     };
 
     componentWillUpdate() {
@@ -51,8 +54,6 @@ export default class App extends PureComponent<{}, State> {
     onSpeechEndHandler = (e: any) => this.setState({ isListening: false });
 
     onSpeechResultsHandler = (e: any) => {
-        // SnowboyService.start();
-
         this.setState({
             pendingMessage: e.value[0],
             isPredicting: true,
