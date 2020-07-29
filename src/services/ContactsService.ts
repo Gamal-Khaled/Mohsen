@@ -9,7 +9,6 @@ class ContactsService {
     initialize = async () => {
         await this.requestPermissions();
         this.contacts = await this.getAllContacts();
-        console.log(this.contacts);
     }
 
     requestPermissions = async () => {
