@@ -38,8 +38,8 @@ export default class App extends PureComponent<{}, State> {
 
         SnowboyService.removeAllListeners("msg-active");
         SnowboyService.addEventListener("msg-active", async (e: any) => {
-            SnowboyService.stop();
-            setTimeout(_ => SpeechToTextService.start(), 500);
+            await SnowboyService.stop();
+            SpeechToTextService.start();
         });
     };
 
@@ -72,11 +72,20 @@ export default class App extends PureComponent<{}, State> {
                     pendingMessage: "",
                 });
                 ToastAndroid.show("Something went wrong please try again.", ToastAndroid.LONG);
-                return;
             } else {
-                // SnowboyService.start();
-
+                this.setState({
+                    isPredicting: false,
+                    pendingMessage: "",
+                    chat: [
+                        ...this.state.chat,
+                        {
+                            msg: e.value[0],
+                            userMessage: true,
+                        }
+                    ]
+                });
             }
+            SnowboyService.start();
         });
     }
     onSpeechPartialResultsHandler = (e: any) => {

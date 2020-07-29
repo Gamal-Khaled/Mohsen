@@ -5166,7 +5166,7 @@ react-native-calendar-events@^1.7.3:
 
 "react-native-snowboy@https://github.com/Hossam777/react-native-snowboy.git":
   version "1.0.0"
-  resolved "https://github.com/Hossam777/react-native-snowboy.git#5f9c3cdaa0ac1e35563213c72a62ecf9ed0a4a36"
+  resolved "https://github.com/Hossam777/react-native-snowboy.git#304b9001066469fde90ac8b12cacd5ba5e2cc8e3"
 
 react-native@0.61.5:
   version "0.61.5"
