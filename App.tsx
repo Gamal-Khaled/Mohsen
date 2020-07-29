@@ -34,8 +34,11 @@ const App = () => {
     })
   };
 
+  let sartService = function () {
+    
+  };
   let stopService = function () {
-    snowboy.stopRecording();
+    
   };
   const sendToDB = () => {
     const fetchWrapper = new FetchWrapper('https://cs495-705cf.firebaseio.com');
@@ -51,8 +54,12 @@ const App = () => {
         onPress={() => click()}
       />
       <Button
-        title="Stop Service"
+        title="Start Service"
         onPress={() => stopService()}
+      />
+      <Button
+        title="Stop Service"
+        onPress={() => sartService()}
       />
       <Button
         title="Send data to DB"

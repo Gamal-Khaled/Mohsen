@@ -19,11 +19,10 @@ import com.facebook.react.HeadlessJsTaskService;
 import ai.kitt.snowboy.MsgEnum;
 import ai.kitt.snowboy.audio.AudioDataSaver;
 import ai.kitt.snowboy.audio.RecordingThread;
+import ai.kitt.snowboy.AppResCopy;
 
 public class SnowboyService extends Service {
     private RecordingThread recordingThread;
-    private boolean isServiceStarted = false;
-    private static final String CHANNEL_ID = "SNOWBOY_SERVICE_CHANNEL";
 
     @Override
     public void onCreate() {
@@ -41,27 +40,24 @@ public class SnowboyService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         showNotification(getBaseContext());
-        /*recordingThread = new RecordingThread(new Handler() {
+        /*AppResCopy.copyResFromAssetsToSD(reactContext);
+        Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 MsgEnum message = MsgEnum.getMsgEnum(msg.what);
                 switch(message) {
                     case MSG_ACTIVE:
-                        Intent service = new Intent(getApplicationContext(), SnowboyHeadlessTask.class);
-                        getApplicationContext().startService(service);
-                        HeadlessJsTaskService.acquireWakeLockNow(getApplicationContext());
-
-                        Toast.makeText(getApplicationContext(), "Heared you", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "Heared you", Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
-        }, new AudioDataSaver());
-        Toast.makeText(this, "Snowboy service started", Toast.LENGTH_LONG).show();
-        recordingThread.startRecording();*/
+        };
+        recordingThread = new RecordingThread(handler, new AudioDataSaver());*/
+        //recordingThread.startRecording();
+        Toast.makeText(getBaseContext(), "Snowboy service started", Toast.LENGTH_SHORT).show();
         return START_STICKY;
     }
     private void showNotification(Context context) {
-        
         Intent i = new Intent(context, MainActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, i, 0);

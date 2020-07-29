@@ -6,7 +6,7 @@ import android.app.NotificationManager;
 import android.os.Build;
 
 public class SnowboyNotificationChannel extends Application {
-    private static final String CHANNEL_ID = "SNOWBOY_SERVICE_CHANNEL";
+    private static final String CHANNEL_ID = "SnowBoy_Channel";
     @Override
     public void onCreate() {
         super.onCreate();
@@ -16,7 +16,7 @@ public class SnowboyNotificationChannel extends Application {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             NotificationChannel serviceChannel = new NotificationChannel(
                     CHANNEL_ID,
-                    "Snowboy service",
+                    "Channel for SnowBoy",
                     NotificationManager.IMPORTANCE_DEFAULT
             );
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
