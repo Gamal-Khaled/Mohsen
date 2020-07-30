@@ -44,6 +44,8 @@ export default class App extends PureComponent<{}, State> {
         });
 
         ContactsService.initialize();
+
+        this.onSpeechResultsHandler({value: ["call hossam mohamed"]});
     };
 
     componentWillUpdate() {

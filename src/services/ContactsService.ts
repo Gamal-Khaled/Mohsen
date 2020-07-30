@@ -51,7 +51,7 @@ class ContactsService {
         return tbr;
     }
 
-    searchForContact = async (contactName: string[]): Promise<Contact[] | null> => {
+    searchForContact = async (contactName: string[]): Promise<Contact[]> => {
         const fullName = contactName.reduce((namePart, accumulate) => namePart + " " + accumulate);
 
         const contactBasedOnFullname = this.searchForContactsByFullName(fullName);
