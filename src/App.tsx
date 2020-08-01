@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { LayoutAnimation } from 'react-native';
+import { ToastAndroid, LayoutAnimation } from 'react-native';
+import Tts from 'react-native-tts';
 
 import SpeechToTextService from 'services/SpeechToTextService';
 import ChatScreen from 'screens/ChatScreen/ChatScreen';
@@ -55,6 +56,9 @@ export default class App extends PureComponent<{}, State> {
         });
 
         ContactsService.initialize();
+        Tts.getInitStatus().then(() => {
+            Tts.speak('Hi, my name is Mohsen how can I help you.');
+        });
     };
 
     componentWillUpdate() {
