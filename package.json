@@ -14,7 +14,8 @@
     "react": "16.9.0",
     "react-native": "0.61.5",
     "react-native-calendar-events": "^1.7.3",
-    "react-native-snowboy": "https://github.com/Hossam777/react-native-snowboy.git"
+    "react-native-snowboy": "https://github.com/Hossam777/react-native-snowboy.git",
+    "react-native-tts": "^3.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",

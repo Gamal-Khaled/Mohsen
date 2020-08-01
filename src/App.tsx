@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import { ToastAndroid, LayoutAnimation } from 'react-native';
+import Tts from 'react-native-tts';
 
 import SnowboyService from 'services/SnowboyService';
 import SpeechToTextService from 'services/SpeechToTextService';
@@ -40,6 +41,10 @@ export default class App extends PureComponent<{}, State> {
         SnowboyService.addEventListener("msg-active", async (e: any) => {
             await SnowboyService.stop();
             SpeechToTextService.start();
+        });
+
+        Tts.getInitStatus().then(() => {
+            Tts.speak('Hi, my name is Mohsen how can I help you.');
         });
     };
 
