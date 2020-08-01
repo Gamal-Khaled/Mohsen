@@ -3,12 +3,17 @@ import { Text, View, FlatList, StyleSheet, ActivityIndicator, Image, StatusBar }
 
 import ChatMessage from 'models/ChatMessage';
 import Colors from 'assets/Colors';
+import { Choice } from 'models/AssisstantResponse';
+import UserMessage from './UserMessage';
+import AssisstantMessage from './AssisstantMessage';
 
 interface Props {
     chat: ChatMessage[];
     pendingMessage: string;
     isPredicting: boolean;
     isListening: boolean;
+    choicesToDisplay?: Choice[];
+    onChoicePress: (selectedChoice: Choice) => void;
 }
 
 export default ({
@@ -16,13 +21,19 @@ export default ({
     pendingMessage,
     isPredicting,
     isListening,
+    choicesToDisplay,
+    onChoicePress,
 }: Props) => {
-    const renderMessage = ({ item }: { item: ChatMessage }) => (
-        <View style={[styles.msgWrapper, item.userMessage && styles.userMSGWrapper]}>
-            <View style={[styles.msgContainer, item.userMessage && styles.userMSGContainer]}>
-                <Text style={[styles.msg, item.userMessage && styles.userMSG]}>{item.msg}</Text>
-            </View>
-        </View>
+    const renderMessage = ({ item }: { item: ChatMessage }) => item.msg.length > 0 && (
+        item.userMessage ? (
+            <UserMessage message={item}/>
+        ) : (
+            <AssisstantMessage
+                message={item}
+                choicesToDisplay={choicesToDisplay}
+                onChoicePress={onChoicePress}
+            />
+        )
     )
 
     const isEmpty = () => chat.length + pendingMessage.length === 0;
@@ -40,7 +51,7 @@ export default ({
 
     return (
         <View style={styles.container}>
-            <StatusBar backgroundColor={Colors.primary}/>
+            <StatusBar backgroundColor={Colors.primary} />
             <View>
                 <View>
                     <FlatList

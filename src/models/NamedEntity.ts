@@ -1,6 +1,6 @@
-import EntityType from "./EntityType";
+import EntityTypes from "./EntityTypes";
 
 export default interface NamedEntity {
     word: string;
-    entityType: EntityType;
+    entityType: EntityTypes;
 }

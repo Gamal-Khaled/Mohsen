@@ -1,1 +1,1 @@
-export const baseURL = "https://mohsen-service.herokuapp.com/predict";
+export const baseURL = __DEV__ ? "http://192.168.1.6:5000/predict" : "https://mohsen-service.herokuapp.com/predict";

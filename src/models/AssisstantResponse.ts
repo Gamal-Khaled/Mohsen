@@ -1,12 +1,14 @@
 export interface Choice {
     id: number;
     value: string;
+    paramName: string;
 }
 
-export default interface ExecuterResponse {
-    commandExecuted: boolean;
+export default interface AssisstantResponse {
+    commandUnderstood: boolean;
     userMessage: string;
     getVoiceInput: boolean;
     displayChoices: boolean;
     choices?: Choice[];
+    execute?: () => void;
 }

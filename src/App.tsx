@@ -1,26 +1,37 @@
 import React, { PureComponent } from 'react';
-import { ToastAndroid, LayoutAnimation } from 'react-native';
+import { LayoutAnimation } from 'react-native';
 
-import SnowboyService from 'services/SnowboyService';
 import SpeechToTextService from 'services/SpeechToTextService';
 import ChatScreen from 'screens/ChatScreen/ChatScreen';
-import MLModeslsAPIHandler from 'apis/MLModeslsAPIHandler';
-import ChatMessage from 'models/ChatMessage';
 import ContactsService from 'services/ContactsService';
+import SnowboyService from 'services/SnowboyService';
+import ChatMessage from 'models/ChatMessage';
+import VirtualAssisstant from 'services/VirtualAssisstant';
+import AssisstantResponse, { Choice } from 'models/AssisstantResponse';
+
+enum AssisstantState {
+    NO_PENDING_COMMAND,
+    WAITING_FOR_FOLLOW_UP,
+    WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
+}
 
 interface State {
     chat: ChatMessage[];
     pendingMessage: string;
     isPredicting: boolean;
     isListening: boolean;
+    currentAssisstantState: AssisstantState;
+    choicesToDisplay?: Choice[];
 }
 
 export default class App extends PureComponent<{}, State> {
-    state = {
+    state: State = {
         chat: [],
         pendingMessage: "",
         isPredicting: false,
         isListening: false,
+        currentAssisstantState: AssisstantState.NO_PENDING_COMMAND,
+        choicesToDisplay: []
     }
 
     async componentDidMount() {
@@ -35,7 +46,7 @@ export default class App extends PureComponent<{}, State> {
             onSpeechRecognizedHandler: this.onSpeechRecognizedHandler.bind(this),
         })
 
-        // SnowboyService.start();
+        SnowboyService.start();
 
         SnowboyService.removeAllListeners("msg-active");
         SnowboyService.addEventListener("msg-active", async (e: any) => {
@@ -44,8 +55,6 @@ export default class App extends PureComponent<{}, State> {
         });
 
         ContactsService.initialize();
-
-        this.onSpeechResultsHandler({value: ["call hossam mohamed"]});
     };
 
     componentWillUpdate() {
@@ -60,69 +69,114 @@ export default class App extends PureComponent<{}, State> {
             pendingMessage: e.value[0],
             isPredicting: true,
         }, async () => {
-            const results = await Promise.all([
-                this.predictIntent(e.value[0]),
-                this.predictEntities(e.value[0]),
-            ]);
-
-            let error = false;
-            results.forEach(res => error = error || !!res.error);
-
-            console.log(results);
-            if (error) {
-                this.setState({
-                    isPredicting: false,
-                    pendingMessage: "",
-                });
-                ToastAndroid.show("Something went wrong please try again.", ToastAndroid.LONG);
-            } else {
-                this.setState({
-                    isPredicting: false,
-                    pendingMessage: "",
-                    chat: [
-                        ...this.state.chat,
-                        {
-                            msg: e.value[0],
-                            userMessage: true,
-                        }
-                    ]
-                });
-            }
-            SnowboyService.start();
+            this.forwardToAssistant(e.value[0]);
         });
     }
     onSpeechPartialResultsHandler = (e: any) => {
-        console.log(e)
         this.setState({ pendingMessage: e.value });
     }
     onSpeechVolumeChangedHandler = (e: any) => { }
     onSpeechErrorHandler = (e: any) => {
         console.log(e);
         SnowboyService.start();
-        ToastAndroid.show("Something went wrong please try again later.", ToastAndroid.LONG);
+        this.setState({chat: [
+            ...this.state.chat, {
+                msg: "Something went wrong please try again later.",
+                userMessage: false,
+            }
+        ], isListening: false})
     }
     onSpeechRecognizedHandler = (e: any) => { console.log("onSpeechRecognizedHandler", e) }
 
-    predictIntent = async (text: string) => {
-        try {
-            const response = await MLModeslsAPIHandler.predictIntent(text);
-            return response.result;
-        } catch (e) {
-            return { error: true, errorMessage: e };
-        }
-    }
+    forwardToAssistant = async (input: string | Choice) => {
+        let assisstantResponse: AssisstantResponse;
+        switch (this.state.currentAssisstantState) {
+            case AssisstantState.NO_PENDING_COMMAND:
+                assisstantResponse = await VirtualAssisstant.processUserInput(input as string);
+                break;
 
-    predictEntities = async (text: string) => {
-        try {
-            const response = await MLModeslsAPIHandler.predictEntities(text);
-            return response.result;
-        } catch (e) {
-            return { error: true, errorMessage: e };
+            case AssisstantState.WAITING_FOR_FOLLOW_UP:
+                assisstantResponse = await VirtualAssisstant.followUpOnCommand(input as string);
+                break;
+
+            case AssisstantState.WAITING_FOR_FOLLOW_UP_WITH_CHOICES:
+                assisstantResponse = await VirtualAssisstant.followUpOnCommandByUserChoice(input as Choice);
+                break;
+        }
+
+        if (assisstantResponse.commandUnderstood) {
+            this.setState({
+                pendingMessage: "",
+                isPredicting: false,
+                isListening: false,
+                currentAssisstantState: AssisstantState.NO_PENDING_COMMAND,
+                chat: [
+                    ...this.state.chat,
+                    {
+                        msg: this.state.pendingMessage,
+                        userMessage: true,
+                    },
+                    {
+                        msg: assisstantResponse.userMessage,
+                        userMessage: false,
+                    },
+                ],
+                choicesToDisplay: undefined,
+            });
+
+            setTimeout(() => {
+                assisstantResponse.execute && assisstantResponse.execute();
+                SnowboyService.start();
+            })
+        } else {
+            if (assisstantResponse.getVoiceInput) {
+                this.setState({
+                    currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP,
+                    choicesToDisplay: assisstantResponse.choices,
+                    chat: [
+                        ...this.state.chat,
+                        {
+                            msg: this.state.pendingMessage,
+                            userMessage: true,
+                        },
+                        {
+                            msg: assisstantResponse.userMessage,
+                            userMessage: false,
+                        },
+                    ],
+                });
+                SpeechToTextService.start();
+            } else if (assisstantResponse.displayChoices) {
+                this.setState({
+                    currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
+                    choicesToDisplay: assisstantResponse.choices,
+                    chat: [
+                        ...this.state.chat,
+                        {
+                            msg: this.state.pendingMessage,
+                            userMessage: true,
+                        },
+                        {
+                            msg: assisstantResponse.userMessage,
+                            userMessage: false,
+                            choicesToDisplay: assisstantResponse.choices
+                        },
+                    ],
+                });
+            }
+
+            this.setState({ pendingMessage: "", isPredicting: false });
         }
     }
 
     render() {
-        const { isPredicting, chat, pendingMessage, isListening } = this.state;
+        const {
+            isPredicting,
+            chat,
+            pendingMessage,
+            isListening,
+            choicesToDisplay
+        } = this.state;
 
         return (
             <ChatScreen
@@ -130,6 +184,8 @@ export default class App extends PureComponent<{}, State> {
                 isPredicting={isPredicting}
                 pendingMessage={pendingMessage}
                 isListening={isListening}
+                choicesToDisplay={choicesToDisplay}
+                onChoicePress={this.forwardToAssistant}
             />
         );
     }

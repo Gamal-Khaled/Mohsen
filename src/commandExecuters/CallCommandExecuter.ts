@@ -1,17 +1,18 @@
 import CommandExecuter from "./CommandExecuter";
-import EntityType from "models/EntityType";
+import EntityTypes from "models/EntityTypes";
 import NamedEntity from "models/NamedEntity";
 import ContactsService from "services/ContactsService";
-import ExecuterResponse from "models/ExecuterResponse";
+import AssisstantResponse from "models/AssisstantResponse";
+import CallsService from "services/CallsService";
 
 interface Params {
     contactName: string[];
 }
 
-class CallCommandExecuter extends CommandExecuter<Params> {
+export default class CallCommandExecuter extends CommandExecuter<Params> {
     extractParamsFromEntities = (entities: NamedEntity[]) => {
         const neededEntities = entities.filter(entity =>
-            entity.entityType === EntityType.Contact_Name
+            entity.entityType == EntityTypes.CONTACT_NAME
         );
 
         return {
@@ -19,37 +20,56 @@ class CallCommandExecuter extends CommandExecuter<Params> {
         };
     };
 
-    executeCommand = async (params: Params): Promise<ExecuterResponse> => {
+    processCommand = async (params: Params): Promise<AssisstantResponse> => {
         if (params.contactName.length === 0) {
             return {
-                commandExecuted: false,
-                userMessage: 'Who do you want me to call?',
+                commandUnderstood: false,
+                userMessage: 'Who do you want to call?',
                 getVoiceInput: true,
                 displayChoices: false,
             }
+        } else if (
+            params.contactName.length === 1 &&
+            !isNaN(parseInt(params.contactName[0]))
+        ) {
+            return {
+                commandUnderstood: true,
+                userMessage: 'Ok',
+                getVoiceInput: false,
+                displayChoices: false,
+                execute: () => CallsService.makePhoneCall(params.contactName[0])
+            }
         } else {
             const matchingContacts = await ContactsService.searchForContact(params.contactName);
-            if (matchingContacts.length === 1) {
+            console.log(matchingContacts)
+            if (matchingContacts.length === 0) {
                 return {
-                    commandExecuted: true,
+                    commandUnderstood: false,
+                    userMessage: 'Who do you want to call?',
+                    getVoiceInput: true,
+                    displayChoices: false,
+                }
+            } else if (matchingContacts.length === 1) {
+                return {
+                    commandUnderstood: true,
                     userMessage: 'Ok',
                     getVoiceInput: false,
                     displayChoices: false,
+                    execute: () => CallsService.makePhoneCall(matchingContacts[0].phoneNumbers[0].number)
                 }
             } else {
                 return {
-                    commandExecuted: false,
+                    commandUnderstood: false,
                     userMessage: 'Sorry I got confused, which one of those?',
                     getVoiceInput: false,
                     displayChoices: true,
                     choices: matchingContacts.map((contact, i) => ({
                         id: i,
-                        value: contact.givenName + contact.familyName,
+                        value: `${contact.givenName} ${contact.familyName}`,
+                        paramName: 'contactName',
                     }))
                 }
             }
         }
     };
 }
-
-export default CallCommandExecuter;
