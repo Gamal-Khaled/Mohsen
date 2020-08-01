@@ -24,17 +24,17 @@ export default ({
     choicesToDisplay,
     onChoicePress,
 }: Props) => {
-    const renderMessage = ({ item }: { item: ChatMessage }) => item.msg.length > 0 && (
+    const renderMessage = ({ item, index }: { item: ChatMessage, index: number }) => item.msg.length > 0 ? (
         item.userMessage ? (
-            <UserMessage message={item}/>
+            <UserMessage message={item} />
         ) : (
-            <AssisstantMessage
-                message={item}
-                choicesToDisplay={choicesToDisplay}
-                onChoicePress={onChoicePress}
-            />
-        )
-    )
+                <AssisstantMessage
+                    message={item}
+                    choicesToDisplay={chat.length - 1 == index ? choicesToDisplay : undefined}
+                    onChoicePress={onChoicePress}
+                />
+            )
+    ) : <View />
 
     const isEmpty = () => chat.length + pendingMessage.length === 0;
 

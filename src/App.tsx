@@ -55,9 +55,9 @@ export default class App extends PureComponent<{}, State> {
             SpeechToTextService.start();
         });
 
-        ContactsService.initialize();
+        Tts.setDefaultVoice("en-us-x-sfg#female_2-local");
         Tts.getInitStatus().then(() => {
-            Tts.speak('Hi, my name is Mohsen how can I help you.');
+            Tts.speak('Hi, my name is Mohssen how can I help you.');
         });
     };
 
@@ -107,6 +107,7 @@ export default class App extends PureComponent<{}, State> {
                 assisstantResponse = await VirtualAssisstant.followUpOnCommandByUserChoice(input as Choice);
                 break;
         }
+        Tts.speak(assisstantResponse.userMessage);
 
         if (assisstantResponse.commandUnderstood) {
             this.setState({
@@ -131,7 +132,7 @@ export default class App extends PureComponent<{}, State> {
             setTimeout(() => {
                 assisstantResponse.execute && assisstantResponse.execute();
                 SnowboyService.start();
-            })
+            }, 300);
         } else {
             if (assisstantResponse.getVoiceInput) {
                 this.setState({

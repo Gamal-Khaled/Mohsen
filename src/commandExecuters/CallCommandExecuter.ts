@@ -10,6 +10,11 @@ interface Params {
 }
 
 export default class CallCommandExecuter extends CommandExecuter<Params> {
+    constructor() {
+        super();
+        ContactsService.initialize();
+    }
+
     extractParamsFromEntities = (entities: NamedEntity[]) => {
         const neededEntities = entities.filter(entity =>
             entity.entityType == EntityTypes.CONTACT_NAME
@@ -60,7 +65,7 @@ export default class CallCommandExecuter extends CommandExecuter<Params> {
             } else {
                 return {
                     commandUnderstood: false,
-                    userMessage: 'Sorry I got confused, which one of those?',
+                    userMessage: 'Sorry, I got confused, which one of those?',
                     getVoiceInput: false,
                     displayChoices: true,
                     choices: matchingContacts.map((contact, i) => ({
