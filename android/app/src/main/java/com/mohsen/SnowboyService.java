@@ -23,6 +23,7 @@ import ai.kitt.snowboy.AppResCopy;
 
 public class SnowboyService extends Service {
     private RecordingThread recordingThread;
+    private Context context;
 
     @Override
     public void onCreate() {
@@ -39,21 +40,25 @@ public class SnowboyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        context = getBaseContext();
         showNotification(getBaseContext());
-        /*AppResCopy.copyResFromAssetsToSD(reactContext);
+        AppResCopy.copyResFromAssetsToSD(getBaseContext());
         Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 MsgEnum message = MsgEnum.getMsgEnum(msg.what);
                 switch(message) {
                     case MSG_ACTIVE:
-                        Toast.makeText(getBaseContext(), "Heared you", Toast.LENGTH_SHORT).show();
-                        break;
+                    Intent service = new Intent(context, SnowboyHeadlessTask.class);
+                    context.startService(service);
+                    //HeadlessJsTaskService.acquireWakeLockNow(context);
+                    Toast.makeText(context, "Heared you", Toast.LENGTH_SHORT).show();
+                    break;
                 }
             }
         };
-        recordingThread = new RecordingThread(handler, new AudioDataSaver());*/
-        //recordingThread.startRecording();
+        recordingThread = new RecordingThread(handler, new AudioDataSaver());
+        recordingThread.startRecording();
         Toast.makeText(getBaseContext(), "Snowboy service started", Toast.LENGTH_SHORT).show();
         return START_STICKY;
     }

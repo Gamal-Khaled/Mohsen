@@ -13,8 +13,10 @@ import {
   View,
   Text,
   Button,
+  NativeModules,
 } from 'react-native';
 
+const snowboyService = NativeModules.SnowboyServiceModule; 
 import snowboy from "react-native-snowboy";
 import FetchWrapper from './src/service/FetchWrapper';
 
@@ -34,11 +36,11 @@ const App = () => {
     })
   };
 
-  let sartService = function () {
-    
+  let startService = function () {
+    snowboyService.startService();
   };
   let stopService = function () {
-    
+    snowboyService.stopService();
   };
   const sendToDB = () => {
     const fetchWrapper = new FetchWrapper('https://cs495-705cf.firebaseio.com');
@@ -55,11 +57,11 @@ const App = () => {
       />
       <Button
         title="Start Service"
-        onPress={() => stopService()}
+        onPress={() => startService()}
       />
       <Button
         title="Stop Service"
-        onPress={() => sartService()}
+        onPress={() => stopService()}
       />
       <Button
         title="Send data to DB"
