@@ -160,7 +160,6 @@ export default class App extends PureComponent<{}, State> {
                         {
                             msg: assisstantResponse.userMessage,
                             userMessage: false,
-                            choicesToDisplay: assisstantResponse.choices
                         },
                     ],
                 });
