@@ -1,13 +1,12 @@
 import React, { PureComponent } from 'react';
-import { ToastAndroid, LayoutAnimation } from 'react-native';
-import Tts from 'react-native-tts';
+import { LayoutAnimation } from 'react-native';
 
-import SpeechToTextService from 'services/SpeechToTextService';
 import ChatScreen from 'screens/ChatScreen/ChatScreen';
-import ContactsService from 'services/ContactsService';
+import SpeechToTextService from 'services/SpeechToTextService';
 import SnowboyService from 'services/SnowboyService';
-import ChatMessage from 'models/ChatMessage';
 import VirtualAssisstant from 'services/VirtualAssisstant';
+import TTSService from 'services/TTSService';
+import ChatMessage from 'models/ChatMessage';
 import AssisstantResponse, { Choice } from 'models/AssisstantResponse';
 
 enum AssisstantState {
@@ -47,18 +46,13 @@ export default class App extends PureComponent<{}, State> {
             onSpeechRecognizedHandler: this.onSpeechRecognizedHandler.bind(this),
         })
 
-        SnowboyService.start();
-
         SnowboyService.removeAllListeners("msg-active");
         SnowboyService.addEventListener("msg-active", async (e: any) => {
             await SnowboyService.stop();
             SpeechToTextService.start();
         });
 
-        Tts.setDefaultVoice("en-us-x-sfg#female_2-local");
-        Tts.getInitStatus().then(() => {
-            Tts.speak('Hi, my name is Mohssen how can I help you.');
-        });
+        TTSService.speak('Hi, my name is Mohssen how can I help you.', SnowboyService.start);
     };
 
     componentWillUpdate() {
@@ -83,12 +77,14 @@ export default class App extends PureComponent<{}, State> {
     onSpeechErrorHandler = (e: any) => {
         console.log(e);
         SnowboyService.start();
-        this.setState({chat: [
-            ...this.state.chat, {
-                msg: "Something went wrong please try again later.",
-                userMessage: false,
-            }
-        ], isListening: false})
+        this.setState({
+            chat: [
+                ...this.state.chat, {
+                    msg: "Something went wrong please try again later.",
+                    userMessage: false,
+                }
+            ], isListening: false
+        })
     }
     onSpeechRecognizedHandler = (e: any) => { console.log("onSpeechRecognizedHandler", e) }
 
@@ -107,7 +103,6 @@ export default class App extends PureComponent<{}, State> {
                 assisstantResponse = await VirtualAssisstant.followUpOnCommandByUserChoice(input as Choice);
                 break;
         }
-        Tts.speak(assisstantResponse.userMessage);
 
         if (assisstantResponse.commandUnderstood) {
             this.setState({
@@ -129,11 +124,12 @@ export default class App extends PureComponent<{}, State> {
                 choicesToDisplay: undefined,
             });
 
-            setTimeout(() => {
+            TTSService.speak(assisstantResponse.userMessage, () => {
                 assisstantResponse.execute && assisstantResponse.execute();
                 SnowboyService.start();
-            }, 300);
+            });
         } else {
+            TTSService.speak(assisstantResponse.userMessage);
             if (assisstantResponse.getVoiceInput) {
                 this.setState({
                     currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP,
