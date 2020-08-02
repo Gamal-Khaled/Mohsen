@@ -50,7 +50,6 @@ class VirtualAssisstant {
         let error = false;
         results.forEach(res => error = error || !!res.error);
 
-        console.log(results)
         if (error) {
             return {
                 commandUnderstood: true,

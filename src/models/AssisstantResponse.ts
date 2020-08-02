@@ -1,3 +1,5 @@
+import CommandResponse from "./CommandResponse";
+
 export interface Choice {
     id: number;
     value: string;
@@ -10,5 +12,5 @@ export default interface AssisstantResponse {
     getVoiceInput: boolean;
     displayChoices: boolean;
     choices?: Choice[];
-    execute?: () => void;
+    execute?: () => Promise<CommandResponse>;
 }

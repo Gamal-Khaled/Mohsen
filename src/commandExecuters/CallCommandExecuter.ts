@@ -13,6 +13,7 @@ export default class CallCommandExecuter extends CommandExecuter<Params> {
     constructor() {
         super();
         ContactsService.initialize();
+        CallsService.initialize();
     }
 
     extractParamsFromEntities = (entities: NamedEntity[]) => {
@@ -46,7 +47,6 @@ export default class CallCommandExecuter extends CommandExecuter<Params> {
             }
         } else {
             const matchingContacts = await ContactsService.searchForContact(params.contactName);
-            console.log(matchingContacts)
             if (matchingContacts.length === 0) {
                 return {
                     commandUnderstood: false,

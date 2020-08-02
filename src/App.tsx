@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { LayoutAnimation } from 'react-native';
+import { LayoutAnimation, PermissionsAndroid } from 'react-native';
 
 import ChatScreen from 'screens/ChatScreen/ChatScreen';
 import SpeechToTextService from 'services/SpeechToTextService';
@@ -124,8 +124,22 @@ export default class App extends PureComponent<{}, State> {
                 choicesToDisplay: undefined,
             });
 
-            TTSService.speak(assisstantResponse.userMessage, () => {
-                assisstantResponse.execute && assisstantResponse.execute();
+            TTSService.speak(assisstantResponse.userMessage, async () => {
+                if (assisstantResponse.execute) {
+                    const commandResponse = await assisstantResponse.execute();
+                    console.log(commandResponse)
+                    if (!commandResponse.done && commandResponse.message) {
+                        this.setState({
+                            chat: [
+                                ...this.state.chat, {
+                                    msg: commandResponse.message,
+                                    userMessage: false,
+                                }
+                            ]
+                        });
+                        TTSService.speak(commandResponse.message);
+                    }
+                }
                 SnowboyService.start();
             });
         } else {

@@ -37,6 +37,7 @@ export default ({
                             data={choicesToDisplay}
                             renderItem={renderChoice}
                             style={styles.choicesWrapper}
+                            keyExtractor={choice => choice.id.toString()}
                         />
                     )
                 }
