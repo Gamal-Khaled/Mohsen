@@ -12,6 +12,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Build;
 import android.widget.Toast;
+import android.os.Bundle;
 
 import androidx.core.app.NotificationCompat;
 import com.facebook.react.HeadlessJsTaskService;
@@ -40,7 +41,7 @@ public class SnowboyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        context = getBaseContext();
+        context = getApplicationContext();
         showNotification(getBaseContext());
         AppResCopy.copyResFromAssetsToSD(getBaseContext());
         Handler handler = new Handler() {
@@ -49,9 +50,12 @@ public class SnowboyService extends Service {
                 MsgEnum message = MsgEnum.getMsgEnum(msg.what);
                 switch(message) {
                     case MSG_ACTIVE:
-                    Intent service = new Intent(context, SnowboyHeadlessTask.class);
-                    context.startService(service);
-                    //HeadlessJsTaskService.acquireWakeLockNow(context);
+                    Intent myIntent = new Intent(context, SnowboyHeadlessTask.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("foo", "bar");
+                    myIntent.putExtras(bundle);
+                    context.startService(myIntent);
+                    HeadlessJsTaskService.acquireWakeLockNow(context);
                     Toast.makeText(context, "Heared you", Toast.LENGTH_SHORT).show();
                     break;
                 }

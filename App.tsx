@@ -42,10 +42,13 @@ const App = () => {
   let stopService = function () {
     snowboyService.stopService();
   };
+  const startHeadlessService = () => {
+    snowboyService.startHeadlessService();
+  }
   const sendToDB = () => {
     const fetchWrapper = new FetchWrapper('https://cs495-705cf.firebaseio.com');
-
-    fetchWrapper.post("/sendToDBTest.json", { data: 'stort' });
+  
+    fetchWrapper.post("/SnowboyHeadlessTaskTest.json", { data: 'stort' });
   }
 
   return (
@@ -62,6 +65,10 @@ const App = () => {
       <Button
         title="Stop Service"
         onPress={() => stopService()}
+      />
+      <Button
+        title="start headless service"
+        onPress={startHeadlessService}
       />
       <Button
         title="Send data to DB"

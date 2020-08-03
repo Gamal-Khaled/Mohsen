@@ -8,6 +8,7 @@ import com.facebook.react.jstasks.HeadlessJsTaskRetryPolicy;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.jstasks.HeadlessJsTaskConfig;
 import javax.annotation.Nullable;
+//import com.facebook.react.bridge.WritableMap;
 
 public class SnowboyHeadlessTask extends HeadlessJsTaskService {
 
@@ -18,7 +19,7 @@ public class SnowboyHeadlessTask extends HeadlessJsTaskService {
         return new HeadlessJsTaskConfig(
             "SnowboyHeadlessTask",
             Arguments.fromBundle(extras),
-            50000, // timeout for the task
+            5000, // timeout for the task
             true // optional: defines whether or not  the task is allowed in foreground. Default is false
         );
     }
