@@ -1,5 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    TouchableOpacity,
+    Dimensions,
+    Image,
+    Linking
+} from 'react-native';
 
 import { Choice } from 'models/AssisstantResponse';
 import ChatMessage from "models/ChatMessage";
@@ -27,10 +36,31 @@ export default ({
         </TouchableOpacity>
     )
 
+    const onPress = () => {
+        message.onClickUrl && Linking.openURL(message.onClickUrl);
+    }
+
     return (
-        <View style={styles.msgWrapper}>
+        <TouchableOpacity
+            style={styles.msgWrapper}
+            disabled={!message.onClickUrl}
+            onPress={onPress}
+        >
             <View style={styles.msgContainer}>
+                {
+                    message.thumbnail && (
+                        <Image
+                            source={{ uri: message.thumbnail }}
+                            style={styles.thumbnail}
+                        />
+                    )
+                }
                 <Text style={styles.msg}>{message.msg}</Text>
+                {
+                    message.onClickUrl && (
+                        <Text style={styles.seeMore}>Read More...</Text>
+                    )
+                }
                 {
                     choicesToDisplay && (
                         <FlatList
@@ -42,7 +72,7 @@ export default ({
                     )
                 }
             </View>
-        </View>
+        </TouchableOpacity>
     )
 }
 
@@ -74,5 +104,14 @@ const styles = StyleSheet.create({
     },
     choicesWrapper: {
         marginVertical: 5,
+    },
+    thumbnail: {
+        width: width - 120,
+        height: width - 120,
+        borderRadius: 5,
+        marginVertical: 5,
+    },
+    seeMore: {
+        color: Colors.linkTextColor,
     }
 });

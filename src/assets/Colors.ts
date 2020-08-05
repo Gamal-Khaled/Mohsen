@@ -7,4 +7,5 @@ export default {
     systemMessage: "#000",
     primaryText: "#fff",
     secondaryText: "#000",
+    linkTextColor: "#007ACC",
 }
