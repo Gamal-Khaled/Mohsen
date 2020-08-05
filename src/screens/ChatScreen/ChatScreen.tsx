@@ -1,11 +1,13 @@
 import React from 'react';
-import { Text, View, FlatList, StyleSheet, ActivityIndicator, Image, StatusBar } from 'react-native';
+import { Text, View, FlatList, StyleSheet, ActivityIndicator, Image, StatusBar, ScrollView, Dimensions } from 'react-native';
 
 import ChatMessage from 'models/ChatMessage';
 import Colors from 'assets/Colors';
 import { Choice } from 'models/AssisstantResponse';
 import UserMessage from './UserMessage';
 import AssisstantMessage from './AssisstantMessage';
+
+const { height } = Dimensions.get('window');
 
 interface Props {
     chat: ChatMessage[];
@@ -51,31 +53,34 @@ export default ({
 
     return (
         <View style={styles.container}>
-            <StatusBar backgroundColor={Colors.primary} />
-            <View>
-                <View>
-                    <FlatList
-                        data={chat}
-                        keyExtractor={(_, i) => i.toString()}
-                        renderItem={renderMessage}
-                    />
+            <ScrollView style={{ height }}>
+                <StatusBar backgroundColor={Colors.primary} />
+                <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1 }}>
+                        <FlatList
+                            data={chat}
+                            keyExtractor={(_, i) => i.toString()}
+                            renderItem={renderMessage}
+                            contentContainerStyle={{ flex: 1 }}
+                        />
+                    </View>
+                    {
+                        pendingMessage.length > 0 && (
+                            <View style={[styles.msgWrapper, styles.userMSGWrapper]}>
+                                <View style={[styles.msgContainer, styles.userMSGContainer]}>
+                                    <Text style={[styles.msg, styles.userMSG]}>{pendingMessage}</Text>
+                                    {
+                                        isPredicting && <ActivityIndicator color={Colors.userMessage} style={styles.inPending} />
+                                    }
+                                </View>
+                            </View>
+                        )
+                    }
                 </View>
                 {
-                    pendingMessage.length > 0 && (
-                        <View style={[styles.msgWrapper, styles.userMSGWrapper]}>
-                            <View style={[styles.msgContainer, styles.userMSGContainer]}>
-                                <Text style={[styles.msg, styles.userMSG]}>{pendingMessage}</Text>
-                                {
-                                    isPredicting && <ActivityIndicator color={Colors.userMessage} style={styles.inPending} />
-                                }
-                            </View>
-                        </View>
-                    )
+                    isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
                 }
-            </View>
-            {
-                isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
-            }
+            </ScrollView>
         </View>
     );
 }
@@ -86,6 +91,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         justifyContent: 'space-between',
         backgroundColor: Colors.primary,
+        height
     },
     divider: {
         height: 1,

@@ -1,9 +1,9 @@
 enum Intents {
     CALL = "CALL",
-    SONG = "SONG",
-    MAP = "MAP",
     PUBLIC_FIGURE = "PUBLIC_FIGURE",
-    ALARM = "ALARM",
+    // SONG = "SONG",
+    // MAP = "MAP",
+    // ALARM = "ALARM",
 }
 
 export default Intents;

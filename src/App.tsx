@@ -85,6 +85,8 @@ export default class App extends PureComponent<{}, State> {
                 }
             ], isListening: false
         })
+
+        TTSService.speak('Something went wrong please try again later.');
     }
     onSpeechRecognizedHandler = (e: any) => { console.log("onSpeechRecognizedHandler", e) }
 
@@ -119,29 +121,35 @@ export default class App extends PureComponent<{}, State> {
                     {
                         msg: assisstantResponse.userMessage,
                         userMessage: false,
+                        onClickUrl: assisstantResponse.onClickUrl,
+                        thumbnail: assisstantResponse.thumbnail,
                     },
                 ],
                 choicesToDisplay: undefined,
             });
 
-            TTSService.speak(assisstantResponse.userMessage, async () => {
-                if (assisstantResponse.execute) {
-                    const commandResponse = await assisstantResponse.execute();
-                    console.log(commandResponse)
-                    if (!commandResponse.done && commandResponse.message) {
-                        this.setState({
-                            chat: [
-                                ...this.state.chat, {
-                                    msg: commandResponse.message,
-                                    userMessage: false,
-                                }
-                            ]
-                        });
-                        TTSService.speak(commandResponse.message);
+            TTSService.speak(
+                assisstantResponse.userMessage.split(".")[0],
+                async () => {
+                    if (assisstantResponse.execute) {
+                        const commandResponse = await assisstantResponse.execute();
+                        console.log(commandResponse)
+                        if (!commandResponse.done && commandResponse.message) {
+                            this.setState({
+                                chat: [
+                                    ...this.state.chat, {
+                                        msg: commandResponse.message,
+                                        userMessage: false,
+                                        onClickUrl: assisstantResponse.onClickUrl,
+                                        thumbnail: assisstantResponse.thumbnail,
+                                    }
+                                ]
+                            });
+                            TTSService.speak(commandResponse.message);
+                        }
                     }
-                }
-                SnowboyService.start();
-            });
+                    SnowboyService.start();
+                });
         } else {
             TTSService.speak(assisstantResponse.userMessage);
             if (assisstantResponse.getVoiceInput) {
@@ -157,6 +165,8 @@ export default class App extends PureComponent<{}, State> {
                         {
                             msg: assisstantResponse.userMessage,
                             userMessage: false,
+                            onClickUrl: assisstantResponse.onClickUrl,
+                            thumbnail: assisstantResponse.thumbnail,
                         },
                     ],
                 });
@@ -174,6 +184,8 @@ export default class App extends PureComponent<{}, State> {
                         {
                             msg: assisstantResponse.userMessage,
                             userMessage: false,
+                            onClickUrl: assisstantResponse.onClickUrl,
+                            thumbnail: assisstantResponse.thumbnail,
                         },
                     ],
                 });

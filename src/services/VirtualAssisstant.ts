@@ -3,6 +3,7 @@ import AssisstantResponse, { Choice } from "models/AssisstantResponse";
 import CallCommandExecuter from "commandExecuters/CallCommandExecuter";
 import BackendResponsesParser from "utils/BackendResponsesParser";
 import Intents from "models/Intents";
+import PFFetcherCommandExecuter from "commandExecuters/PFFetcherCommandExecuter";
 
 interface AssistantState {
     intent?: Intents;
@@ -21,6 +22,7 @@ class VirtualAssisstant {
 
     private supportedCommands = {
         [Intents.CALL]: new CallCommandExecuter(),
+        [Intents.PUBLIC_FIGURE]: new PFFetcherCommandExecuter(),
     }
 
     private makeIntentPrediction = async (text: string) => {
@@ -42,10 +44,10 @@ class VirtualAssisstant {
     }
 
     processUserInput = async (input: string): Promise<AssisstantResponse> => {
-        const results = await Promise.all([
-            this.makeIntentPrediction(input),
-            this.makeEntitiesPrediction(input),
-        ]);
+        const results = [
+            await this.makeIntentPrediction(input),
+            await this.makeEntitiesPrediction(input),
+        ];
 
         let error = false;
         results.forEach(res => error = error || !!res.error);
@@ -55,7 +57,7 @@ class VirtualAssisstant {
                 commandUnderstood: true,
                 displayChoices: false,
                 getVoiceInput: false,
-                userMessage: "Something went wrong please try again."
+                userMessage: "Something went wrong please try again later."
             }
         }
 
@@ -97,7 +99,7 @@ class VirtualAssisstant {
                 commandUnderstood: true,
                 displayChoices: false,
                 getVoiceInput: false,
-                userMessage: "Something went wrong please try again."
+                userMessage: "Something went wrong please try again later."
             }
         }
 

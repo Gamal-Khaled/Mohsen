@@ -13,4 +13,6 @@ export default interface AssisstantResponse {
     displayChoices: boolean;
     choices?: Choice[];
     execute?: () => Promise<CommandResponse>;
+    thumbnail?: string;
+    onClickUrl?: string;
 }
