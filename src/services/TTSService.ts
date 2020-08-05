@@ -2,10 +2,9 @@ import Tts from 'react-native-tts';
 
 class TTSService {
     private speakCallbacks: { [key: string]: () => void } = {};
-    private getRecentSpeakCallbacks = () => this.speakCallbacks;
 
     constructor() {
-        Tts.setDefaultVoice("en-us-x-sfg#female_2-local");
+        Tts.setDefaultVoice("en-us-x-sfg#male_2-local");
 
         Tts.addEventListener('tts-finish', (event) => {
             if (this.speakCallbacks[event.utteranceId]) {
