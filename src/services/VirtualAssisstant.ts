@@ -65,7 +65,7 @@ class VirtualAssisstant {
         if (this.supportedCommands[prediction.intent]) {
             const commandExecuter = this.supportedCommands[prediction.intent];
             const extractedParams = commandExecuter.extractParamsFromEntities(prediction.entities);
-            const commandProcessingResponse = await commandExecuter.processCommand(extractedParams);
+            const commandProcessingResponse = await commandExecuter.processCommand(extractedParams as any);
 
             if (commandProcessingResponse.commandUnderstood) {
                 this.state = { ...initialState };

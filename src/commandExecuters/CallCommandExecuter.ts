@@ -16,7 +16,7 @@ export default class CallCommandExecuter extends CommandExecuter<Params> {
         CallsService.initialize();
     }
 
-    extractParamsFromEntities = (entities: NamedEntity[]) => {
+    extractParamsFromEntities = (entities: NamedEntity[]): Params => {
         const neededEntities = entities.filter(entity =>
             entity.entityType == EntityTypes.CONTACT_NAME
         );

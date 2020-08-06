@@ -15,4 +15,8 @@ export default interface AssisstantResponse {
     execute?: () => Promise<CommandResponse>;
     thumbnail?: string;
     onClickUrl?: string;
+    mapData?: {
+        lng: number;
+        lat: number;
+    }
 }

@@ -9,7 +9,7 @@ interface Params {
 }
 
 export default class PFFetcherCommandExecuter extends CommandExecuter<Params> {
-    extractParamsFromEntities = (entities: NamedEntity[]) => {
+    extractParamsFromEntities = (entities: NamedEntity[]): Params => {
         const neededEntities = entities.filter(entity =>
             entity.entityType == EntityTypes.PERSON_NAME
         );
