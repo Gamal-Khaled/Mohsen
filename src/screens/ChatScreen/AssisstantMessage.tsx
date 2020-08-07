@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import {
     View,
     Text,
@@ -9,6 +9,7 @@ import {
     Image,
     Linking
 } from 'react-native';
+import MapboxGL from '@react-native-mapbox-gl/maps';
 
 import { Choice } from 'models/AssisstantResponse';
 import ChatMessage from "models/ChatMessage";
@@ -53,6 +54,25 @@ export default ({
                             source={{ uri: message.thumbnail }}
                             style={styles.thumbnail}
                         />
+                    )
+                }
+                {
+                    message.mapData && (
+                        <MapboxGL.MapView
+                            style={styles.thumbnail}
+                            localizeLabels={true}
+                            zoomEnabled={false}
+                            scrollEnabled={false}
+                            pitchEnabled={false}
+                            rotateEnabled={false}
+                        >
+                            <MapboxGL.Camera
+                                zoomLevel={14}
+                                animationMode='flyTo'
+                                animationDuration={1000}
+                                centerCoordinate={message.mapData}
+                            />
+                        </MapboxGL.MapView>
                     )
                 }
                 <Text style={styles.msg}>{message.msg}</Text>

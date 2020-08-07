@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { LayoutAnimation, PermissionsAndroid } from 'react-native';
+import { LayoutAnimation } from 'react-native';
 
 import ChatScreen from 'screens/ChatScreen/ChatScreen';
 import SpeechToTextService from 'services/SpeechToTextService';
@@ -75,7 +75,6 @@ export default class App extends PureComponent<{}, State> {
     }
     onSpeechVolumeChangedHandler = (e: any) => { }
     onSpeechErrorHandler = (e: any) => {
-        console.log(e);
         SnowboyService.start();
         this.setState({
             chat: [
@@ -123,6 +122,7 @@ export default class App extends PureComponent<{}, State> {
                         userMessage: false,
                         onClickUrl: assisstantResponse.onClickUrl,
                         thumbnail: assisstantResponse.thumbnail,
+                        mapData: assisstantResponse.mapData,
                     },
                 ],
                 choicesToDisplay: undefined,
@@ -133,7 +133,6 @@ export default class App extends PureComponent<{}, State> {
                 async () => {
                     if (assisstantResponse.execute) {
                         const commandResponse = await assisstantResponse.execute();
-                        console.log(commandResponse)
                         if (!commandResponse.done && commandResponse.message) {
                             this.setState({
                                 chat: [

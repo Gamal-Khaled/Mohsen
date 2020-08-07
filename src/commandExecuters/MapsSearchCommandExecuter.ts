@@ -1,8 +1,11 @@
+import MapboxGL from '@react-native-mapbox-gl/maps';
+
 import CommandExecuter from './CommandExecuter';
 import NamedEntity from 'models/NamedEntity';
 import EntityTypes from 'models/EntityTypes';
 import MapboxAPIHandler from 'apis/MapboxAPIHandler';
 import AssisstantResponse from 'models/AssisstantResponse';
+import { MapboxAccessToken } from 'apis/constants';
 
 interface Params {
     location: string[];
@@ -11,6 +14,11 @@ interface Params {
 
 export default class MapsSearchCommandExecuter extends CommandExecuter<Params> {
     private choices: any[] = [];
+
+    constructor() {
+        super();
+        MapboxGL.setAccessToken(MapboxAccessToken);
+    }
 
     extractParamsFromEntities = (entities: NamedEntity[]): Params => {
         const neededEntities = entities.filter(entity =>
@@ -33,10 +41,8 @@ export default class MapsSearchCommandExecuter extends CommandExecuter<Params> {
                 displayChoices: false,
                 getVoiceInput: false,
                 userMessage: "Here you go.",
-                mapData: {
-                    lat: choosenLocation.center[0],
-                    lng: choosenLocation.center[1],
-                }
+                mapData: choosenLocation.center,
+                onClickUrl: `geo:${choosenLocation.center[1]},${choosenLocation.center[0]}`
             }
         }
 
@@ -68,10 +74,8 @@ export default class MapsSearchCommandExecuter extends CommandExecuter<Params> {
                 displayChoices: false,
                 getVoiceInput: false,
                 userMessage: "Here you go.",
-                mapData: {
-                    lat: mapsAPIResponse.features[0].center[0],
-                    lng: mapsAPIResponse.features[0].center[1],
-                }
+                mapData: mapsAPIResponse.features[0].center,
+                onClickUrl: `geo:${mapsAPIResponse.feature[0].center[1]},${mapsAPIResponse.feature[0].center[0]}`
             }
         }
 

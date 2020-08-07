@@ -4,6 +4,7 @@ import CallCommandExecuter from "commandExecuters/CallCommandExecuter";
 import BackendResponsesParser from "utils/BackendResponsesParser";
 import Intents from "models/Intents";
 import PFFetcherCommandExecuter from "commandExecuters/PFFetcherCommandExecuter";
+import MapsSearchCommandExecuter from "commandExecuters/MapsSearchCommandExecuter";
 
 interface AssistantState {
     intent?: Intents;
@@ -23,6 +24,7 @@ class VirtualAssisstant {
     private supportedCommands = {
         [Intents.CALL]: new CallCommandExecuter(),
         [Intents.PUBLIC_FIGURE]: new PFFetcherCommandExecuter(),
+        [Intents.MAP]: new MapsSearchCommandExecuter(),
     }
 
     private makeIntentPrediction = async (text: string) => {
