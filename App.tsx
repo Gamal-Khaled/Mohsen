@@ -42,6 +42,15 @@ const App = () => {
   let stopService = function () {
     snowboyService.stopService();
   };
+  let checkServiceStatus = function () {
+    snowboyService.isSnowboyServiceRunning()
+    .then(() => {
+      console.log("Snowboy Service Running");
+    })
+    .catch(() => {
+      console.log("Snowboy Service Not Running");
+    })
+  };
   const startHeadlessService = () => {
     snowboyService.startHeadlessService();
   }
@@ -67,8 +76,8 @@ const App = () => {
         onPress={() => stopService()}
       />
       <Button
-        title="start headless service"
-        onPress={startHeadlessService}
+        title="Check Service Status"
+        onPress={checkServiceStatus}
       />
       <Button
         title="Send data to DB"
