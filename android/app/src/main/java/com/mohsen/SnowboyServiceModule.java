@@ -5,12 +5,10 @@ import android.content.Intent;
 import android.widget.Toast;
 import android.os.Bundle;
 
-import com.facebook.react.bridge.NativeModule;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.*;
 import com.facebook.react.HeadlessJsTaskService;
+import android.app.ActivityManager;
+import android.content.Context;
 
 public class SnowboyServiceModule extends ReactContextBaseJavaModule {
     private static ReactApplicationContext reactContext;
@@ -47,5 +45,16 @@ public class SnowboyServiceModule extends ReactContextBaseJavaModule {
         myIntent.putExtras(bundle);
         reactContext.startService(myIntent);
         HeadlessJsTaskService.acquireWakeLockNow(reactContext);
+    }
+    @ReactMethod
+    public void isSnowboyServiceRunning(Promise promise) {
+        Class<?> serviceClass = SnowboyService.class;
+        ActivityManager manager = (ActivityManager) reactContext.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                promise.resolve(true);
+            }
+        }
+        promise.reject("Not Running");
     }
 }
