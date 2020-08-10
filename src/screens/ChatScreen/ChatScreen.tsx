@@ -1,5 +1,17 @@
-import React from 'react';
-import { Text, View, FlatList, StyleSheet, ActivityIndicator, Image, StatusBar, ScrollView, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import {
+    Text,
+    View,
+    FlatList,
+    StyleSheet,
+    ActivityIndicator,
+    Image,
+    StatusBar,
+    ScrollView,
+    Dimensions,
+    TextInput,
+    TouchableOpacity
+} from 'react-native';
 
 import ChatMessage from 'models/ChatMessage';
 import Colors from 'assets/Colors';
@@ -16,6 +28,8 @@ interface Props {
     isListening: boolean;
     choicesToDisplay?: Choice[];
     onChoicePress: (selectedChoice: Choice) => void;
+    onMicIconPress: () => void;
+    onTextInputSubmit: (text: string) => void;
 }
 
 export default ({
@@ -25,7 +39,11 @@ export default ({
     isListening,
     choicesToDisplay,
     onChoicePress,
+    onMicIconPress,
+    onTextInputSubmit,
 }: Props) => {
+    const [inputText, setInputText] = useState("");
+
     const renderMessage = ({ item, index }: { item: ChatMessage, index: number }) => item.msg.length > 0 ? (
         item.userMessage ? (
             <UserMessage message={item} />
@@ -36,7 +54,34 @@ export default ({
                     onChoicePress={onChoicePress}
                 />
             )
-    ) : <View />
+    ) : <View />;
+
+    const onSumitKeyboardInput = () => {
+        onTextInputSubmit(inputText);
+        setInputText("");
+    }
+
+    const keyboardInput = () => (
+        <View>
+            <View style={styles.keyboardInputContainer}>
+                <TextInput
+                    value={inputText}
+                    onChangeText={setInputText}
+                    style={styles.keyboardInput}
+                    placeholder='Say "Hey Mohsen"'
+                    placeholderTextColor={Colors.primaryText}
+                    onSubmitEditing={onSumitKeyboardInput}
+                />
+                <TouchableOpacity onPress={onMicIconPress}>
+                    <Image
+                        source={require("assets/images/microphone-solid.png")}
+                        style={styles.micIcon}
+                    />
+                </TouchableOpacity>
+            </View>
+            <View style={styles.placeHolder} />
+        </View>
+    )
 
     const isEmpty = () => chat.length + pendingMessage.length === 0;
 
@@ -47,13 +92,14 @@ export default ({
                 {
                     isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
                 }
+                {keyboardInput()}
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <ScrollView style={{ height }}>
+            <ScrollView>
                 <StatusBar backgroundColor={Colors.primary} />
                 <View style={{ flex: 1 }}>
                     <View style={{ flex: 1 }}>
@@ -81,6 +127,7 @@ export default ({
                     isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
                 }
             </ScrollView>
+            {keyboardInput()}
         </View>
     );
 }
@@ -140,9 +187,39 @@ const styles = StyleSheet.create({
     emptyText: {
         textAlign: 'center',
         color: Colors.primaryText,
+        fontSize: 15,
     },
     emptyContainer: {
         justifyContent: 'space-around',
         alignItems: 'center',
     },
+    keyboardInputContainer: {
+        position: 'absolute',
+        bottom: 15,
+        left: 15,
+        right: 15,
+        backgroundColor: Colors.accent,
+        height: 50,
+        borderRadius: 30,
+        paddingHorizontal: 20,
+        flexDirection: "row",
+        alignItems: 'center',
+    },
+    placeHolder: {
+        height: 80,
+    },
+    keyboardInput: {
+        flex: 1,
+        padding: 0,
+        height: 40,
+        fontSize: 16,
+        color: Colors.primaryText,
+        borderColor: Colors.primary,
+    },
+    micIcon: {
+        tintColor: Colors.primaryText,
+        height: 27,
+        width: 35,
+        resizeMode: 'contain'
+    }
 })

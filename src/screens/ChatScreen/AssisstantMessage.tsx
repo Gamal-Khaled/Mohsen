@@ -42,45 +42,46 @@ export default ({
     }
 
     return (
-        <TouchableOpacity
-            style={styles.msgWrapper}
-            disabled={!message.onClickUrl}
-            onPress={onPress}
-        >
+        <View style={styles.msgWrapper}>
             <View style={styles.msgContainer}>
-                {
-                    message.thumbnail && (
-                        <Image
-                            source={{ uri: message.thumbnail }}
-                            style={styles.thumbnail}
-                        />
-                    )
-                }
-                {
-                    message.mapData && (
-                        <MapboxGL.MapView
-                            style={styles.thumbnail}
-                            localizeLabels={true}
-                            zoomEnabled={false}
-                            scrollEnabled={false}
-                            pitchEnabled={false}
-                            rotateEnabled={false}
-                        >
-                            <MapboxGL.Camera
-                                zoomLevel={14}
-                                animationMode='flyTo'
-                                animationDuration={1000}
-                                centerCoordinate={message.mapData}
+                <TouchableOpacity
+                    disabled={!message.onClickUrl}
+                    onPress={onPress}
+                >
+                    {
+                        message.thumbnail && (
+                            <Image
+                                source={{ uri: message.thumbnail }}
+                                style={styles.thumbnail}
                             />
-                        </MapboxGL.MapView>
-                    )
-                }
-                <Text style={styles.msg}>{message.msg}</Text>
-                {
-                    message.onClickUrl && (
-                        <Text style={styles.seeMore}>Read More...</Text>
-                    )
-                }
+                        )
+                    }
+                    {
+                        message.mapData && (
+                            <MapboxGL.MapView
+                                style={styles.thumbnail}
+                                localizeLabels={true}
+                                zoomEnabled={false}
+                                scrollEnabled={false}
+                                pitchEnabled={false}
+                                rotateEnabled={false}
+                            >
+                                <MapboxGL.Camera
+                                    zoomLevel={14}
+                                    animationMode='flyTo'
+                                    animationDuration={1000}
+                                    centerCoordinate={message.mapData}
+                                />
+                            </MapboxGL.MapView>
+                        )
+                    }
+                    <Text style={styles.msg}>{message.msg}</Text>
+                    {
+                        message.onClickUrl && (
+                            <Text style={styles.seeMore}>Read More...</Text>
+                        )
+                    }
+                </TouchableOpacity>
                 {
                     choicesToDisplay && (
                         <FlatList
@@ -92,7 +93,7 @@ export default ({
                     )
                 }
             </View>
-        </TouchableOpacity>
+        </View>
     )
 }
 

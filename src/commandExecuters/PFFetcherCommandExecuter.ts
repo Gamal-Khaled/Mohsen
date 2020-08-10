@@ -23,7 +23,7 @@ export default class PFFetcherCommandExecuter extends CommandExecuter<Params> {
         if (params.title.length === 0) {
             return {
                 commandUnderstood: false,
-                userMessage: 'Sorry, how are you asking about?',
+                userMessage: 'Sorry, who are you asking about?',
                 getVoiceInput: true,
                 displayChoices: false,
             }

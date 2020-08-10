@@ -73,14 +73,13 @@ export default async (taskData: any) => {
             await snowboyService.startService();
         }
 
-        const onSpeechPartialResultsHandler = (e: any) => console.log(e.value);
+        const onSpeechPartialResultsHandler = (e: any) => null;
         const onSpeechVolumeChangedHandler = (e: any) => null;
         const onSpeechRecognizedHandler = (e: any) => null;
         const onSpeechStartHandler = (e: any) => null;
         const onSpeechEndHandler = (e: any) => null;
 
         const onSpeechResultsHandler = (e: any) => {
-            console.log(e.value[0]);
             forwardToAssistant(e.value[0]);
             ToastAndroid.show(e.value[0], ToastAndroid.LONG);
         }

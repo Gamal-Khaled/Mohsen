@@ -22,18 +22,20 @@ interface State {
     isListening: boolean;
     currentAssisstantState: AssisstantState;
     choicesToDisplay?: Choice[];
+    speak: boolean;
 }
 
 const snowboyService = NativeModules.SnowboyServiceModule;
 
 export default class App extends PureComponent<{}, State> {
     state: State = {
-        chat: [],
+        chat: [{userMessage: true,msg:"aasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasdaasdasdasdasdasd"}],
         pendingMessage: "",
         isPredicting: false,
         isListening: false,
         currentAssisstantState: AssisstantState.NO_PENDING_COMMAND,
-        choicesToDisplay: []
+        choicesToDisplay: [],
+        speak: true,
     }
 
     async componentDidMount() {
@@ -52,14 +54,14 @@ export default class App extends PureComponent<{}, State> {
         })
 
         SnowboyService.removeAllListeners("msg-active");
-        SnowboyService.addEventListener("msg-active", async (e: any) => {
-            if (AppState.currentState === "active") {
-                await SnowboyService.stop();
-                SpeechToTextService.start();
-            }
+        SnowboyService.addEventListener("msg-active", _ => {
+            this.startListening(true);
         });
 
         SnowboyService.start();
+
+        console.disableYellowBox = true;
+        // this.onTextInputSubmit("Who is Chris Tucker");
     };
 
     async componentWillUnmount() {
@@ -71,12 +73,19 @@ export default class App extends PureComponent<{}, State> {
     }
 
     onAppStateChange = async (state: AppStateStatus) => {
-        console.log('onAppStateChange', state)
         if (state !== "active" && !await snowboyService.isSnowboyServiceRunning()) {
             await snowboyService.startService();
         }
     }
 
+    startListening = async (speak: boolean) => {
+        this.setState({ speak });
+        await SnowboyService.stop();
+        SpeechToTextService.start();
+    }
+
+    onSpeechVolumeChangedHandler = (e: any) => null;
+    onSpeechRecognizedHandler = (e: any) => null;
     onSpeechStartHandler = (e: any) => this.setState({ isListening: true });
     onSpeechEndHandler = (e: any) => this.setState({ isListening: false });
 
@@ -88,10 +97,11 @@ export default class App extends PureComponent<{}, State> {
             this.forwardToAssistant(e.value[0]);
         });
     }
+
     onSpeechPartialResultsHandler = (e: any) => {
         this.setState({ pendingMessage: e.value });
     }
-    onSpeechVolumeChangedHandler = (e: any) => { }
+
     onSpeechErrorHandler = (e: any) => {
         SnowboyService.start();
         this.setState({
@@ -103,9 +113,20 @@ export default class App extends PureComponent<{}, State> {
             ], isListening: false
         })
 
-        TTSService.speak('Something went wrong please try again later.');
+        if (this.state.speak)
+            TTSService.speak('Something went wrong please try again later.');
     }
-    onSpeechRecognizedHandler = (e: any) => { console.log("onSpeechRecognizedHandler", e) }
+
+    onTextInputSubmit = async (text: string) => {
+        await SnowboyService.stop();
+        this.setState({
+            pendingMessage: text,
+            isPredicting: true,
+            speak: false,
+        }, async () => {
+            this.forwardToAssistant(text);
+        });
+    }
 
     forwardToAssistant = async (input: string | Choice) => {
         let assisstantResponse: AssisstantResponse;
@@ -146,69 +167,81 @@ export default class App extends PureComponent<{}, State> {
                 choicesToDisplay: undefined,
             });
 
-            TTSService.speak(
-                assisstantResponse.userMessage.split(".")[0],
-                async () => {
-                    if (assisstantResponse.execute) {
-                        const commandResponse = await assisstantResponse.execute();
-                        if (!commandResponse.done && commandResponse.message) {
-                            this.setState({
-                                chat: [
-                                    ...this.state.chat, {
-                                        msg: commandResponse.message,
-                                        userMessage: false,
-                                        onClickUrl: assisstantResponse.onClickUrl,
-                                        thumbnail: assisstantResponse.thumbnail,
-                                    }
-                                ]
-                            });
+            const execute = async () => {
+                if (assisstantResponse.execute) {
+                    const commandResponse = await assisstantResponse.execute();
+                    if (!commandResponse.done && commandResponse.message) {
+                        this.setState({
+                            chat: [
+                                ...this.state.chat, {
+                                    msg: commandResponse.message,
+                                    userMessage: false,
+                                    onClickUrl: assisstantResponse.onClickUrl,
+                                    thumbnail: assisstantResponse.thumbnail,
+                                }
+                            ]
+                        });
+                        if (this.state.speak)
                             TTSService.speak(commandResponse.message);
-                        }
                     }
-                    SnowboyService.start();
-                });
-        } else {
-            TTSService.speak(assisstantResponse.userMessage);
-            if (assisstantResponse.getVoiceInput) {
-                this.setState({
-                    currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP,
-                    choicesToDisplay: assisstantResponse.choices,
-                    chat: [
-                        ...this.state.chat,
-                        {
-                            msg: this.state.pendingMessage,
-                            userMessage: true,
-                        },
-                        {
-                            msg: assisstantResponse.userMessage,
-                            userMessage: false,
-                            onClickUrl: assisstantResponse.onClickUrl,
-                            thumbnail: assisstantResponse.thumbnail,
-                        },
-                    ],
-                });
-                SpeechToTextService.start();
-            } else if (assisstantResponse.displayChoices) {
-                this.setState({
-                    currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
-                    choicesToDisplay: assisstantResponse.choices,
-                    chat: [
-                        ...this.state.chat,
-                        {
-                            msg: this.state.pendingMessage,
-                            userMessage: true,
-                        },
-                        {
-                            msg: assisstantResponse.userMessage,
-                            userMessage: false,
-                            onClickUrl: assisstantResponse.onClickUrl,
-                            thumbnail: assisstantResponse.thumbnail,
-                        },
-                    ],
-                });
+                }
+                SnowboyService.start();
             }
 
-            this.setState({ pendingMessage: "", isPredicting: false });
+            if (this.state.speak) {
+                TTSService.speak(assisstantResponse.userMessage.split(".")[0], execute);
+            } else {
+                execute();
+            }
+        } else {
+            const followUp = () => {
+                if (assisstantResponse.getVoiceInput) {
+                    this.setState({
+                        currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP,
+                        choicesToDisplay: assisstantResponse.choices,
+                        chat: [
+                            ...this.state.chat,
+                            {
+                                msg: this.state.pendingMessage,
+                                userMessage: true,
+                            },
+                            {
+                                msg: assisstantResponse.userMessage,
+                                userMessage: false,
+                                onClickUrl: assisstantResponse.onClickUrl,
+                                thumbnail: assisstantResponse.thumbnail,
+                            },
+                        ],
+                    });
+                    SpeechToTextService.start();
+                } else if (assisstantResponse.displayChoices) {
+                    this.setState({
+                        currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
+                        choicesToDisplay: assisstantResponse.choices,
+                        chat: [
+                            ...this.state.chat,
+                            {
+                                msg: this.state.pendingMessage,
+                                userMessage: true,
+                            },
+                            {
+                                msg: assisstantResponse.userMessage,
+                                userMessage: false,
+                                onClickUrl: assisstantResponse.onClickUrl,
+                                thumbnail: assisstantResponse.thumbnail,
+                            },
+                        ],
+                    });
+                }
+    
+                this.setState({ pendingMessage: "", isPredicting: false });
+            }
+            if (this.state.speak) {
+                TTSService.speak(assisstantResponse.userMessage, followUp);
+            } else {
+                followUp();
+            }
+            
         }
     }
 
@@ -229,6 +262,8 @@ export default class App extends PureComponent<{}, State> {
                 isListening={isListening}
                 choicesToDisplay={choicesToDisplay}
                 onChoicePress={this.forwardToAssistant}
+                onMicIconPress={() => this.startListening(true)}
+                onTextInputSubmit={this.onTextInputSubmit}
             />
         );
     }
