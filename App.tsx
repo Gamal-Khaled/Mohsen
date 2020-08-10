@@ -18,6 +18,7 @@ import {
 
 const snowboyService = NativeModules.SnowboyServiceModule; 
 import snowboy from "react-native-snowboy";
+//import ReactNativeAlarm from 'react-native-react-native-alarm';
 import FetchWrapper from './src/service/FetchWrapper';
 
 const App = () => {
