@@ -195,53 +195,52 @@ export default class App extends PureComponent<{}, State> {
                 execute();
             }
         } else {
-            const followUp = () => {
-                if (assisstantResponse.getVoiceInput) {
-                    this.setState({
-                        currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP,
-                        choicesToDisplay: assisstantResponse.choices,
-                        chat: [
-                            ...this.state.chat,
-                            {
-                                msg: this.state.pendingMessage,
-                                userMessage: true,
-                            },
-                            {
-                                msg: assisstantResponse.userMessage,
-                                userMessage: false,
-                                onClickUrl: assisstantResponse.onClickUrl,
-                                thumbnail: assisstantResponse.thumbnail,
-                            },
-                        ],
-                    });
-                    SpeechToTextService.start();
-                } else if (assisstantResponse.displayChoices) {
-                    this.setState({
-                        currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
-                        choicesToDisplay: assisstantResponse.choices,
-                        chat: [
-                            ...this.state.chat,
-                            {
-                                msg: this.state.pendingMessage,
-                                userMessage: true,
-                            },
-                            {
-                                msg: assisstantResponse.userMessage,
-                                userMessage: false,
-                                onClickUrl: assisstantResponse.onClickUrl,
-                                thumbnail: assisstantResponse.thumbnail,
-                            },
-                        ],
-                    });
-                }
+            if (assisstantResponse.getVoiceInput) {
+                this.setState({
+                    currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP,
+                    choicesToDisplay: assisstantResponse.choices,
+                    chat: [
+                        ...this.state.chat,
+                        {
+                            msg: this.state.pendingMessage,
+                            userMessage: true,
+                        },
+                        {
+                            msg: assisstantResponse.userMessage,
+                            userMessage: false,
+                            onClickUrl: assisstantResponse.onClickUrl,
+                            thumbnail: assisstantResponse.thumbnail,
+                        },
+                    ],
+                });
 
-                this.setState({ pendingMessage: "", isPredicting: false });
+                if (this.state.speak) {
+                    TTSService.speak(assisstantResponse.userMessage, SpeechToTextService.start);
+                } else {
+                    SpeechToTextService.start();
+                }
+            } else if (assisstantResponse.displayChoices) {
+                TTSService.speak(assisstantResponse.userMessage);
+                this.setState({
+                    currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
+                    choicesToDisplay: assisstantResponse.choices,
+                    chat: [
+                        ...this.state.chat,
+                        {
+                            msg: this.state.pendingMessage,
+                            userMessage: true,
+                        },
+                        {
+                            msg: assisstantResponse.userMessage,
+                            userMessage: false,
+                            onClickUrl: assisstantResponse.onClickUrl,
+                            thumbnail: assisstantResponse.thumbnail,
+                        },
+                    ],
+                });
             }
-            if (this.state.speak) {
-                TTSService.speak(assisstantResponse.userMessage, followUp);
-            } else {
-                followUp();
-            }
+
+            this.setState({ pendingMessage: "", isPredicting: false });
         }
     }
 
