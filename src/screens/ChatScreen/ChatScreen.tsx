@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     Text,
     View,
@@ -30,6 +30,7 @@ interface Props {
     onChoicePress: (selectedChoice: Choice) => void;
     onMicIconPress: () => void;
     onTextInputSubmit: (text: string) => void;
+    scrollRef?: ((instance: ScrollView | null) => void);
 }
 
 export default ({
@@ -41,6 +42,7 @@ export default ({
     onChoicePress,
     onMicIconPress,
     onTextInputSubmit,
+    scrollRef
 }: Props) => {
     const [inputText, setInputText] = useState("");
 
@@ -62,24 +64,21 @@ export default ({
     }
 
     const keyboardInput = () => (
-        <View>
-            <View style={styles.keyboardInputContainer}>
-                <TextInput
-                    value={inputText}
-                    onChangeText={setInputText}
-                    style={styles.keyboardInput}
-                    placeholder='Say "Hey Mohsen"'
-                    placeholderTextColor={Colors.primaryText}
-                    onSubmitEditing={onSumitKeyboardInput}
+        <View style={styles.keyboardInputContainer}>
+            <TextInput
+                value={inputText}
+                onChangeText={setInputText}
+                style={styles.keyboardInput}
+                placeholder='Say "Hey Mohsen"'
+                placeholderTextColor={Colors.primaryText}
+                onSubmitEditing={onSumitKeyboardInput}
+            />
+            <TouchableOpacity onPress={onMicIconPress}>
+                <Image
+                    source={require("assets/images/microphone-solid.png")}
+                    style={styles.micIcon}
                 />
-                <TouchableOpacity onPress={onMicIconPress}>
-                    <Image
-                        source={require("assets/images/microphone-solid.png")}
-                        style={styles.micIcon}
-                    />
-                </TouchableOpacity>
-            </View>
-            <View style={styles.placeHolder} />
+            </TouchableOpacity>
         </View>
     )
 
@@ -88,6 +87,7 @@ export default ({
     if (isEmpty()) {
         return (
             <View style={[styles.container, styles.emptyContainer]}>
+                <View />
                 <Text style={styles.emptyText}>Hi, my name is Mohsen how can I help you.</Text>
                 {
                     isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
@@ -99,33 +99,34 @@ export default ({
 
     return (
         <View style={styles.container}>
-            <ScrollView>
-                <StatusBar backgroundColor={Colors.primary} />
-                <View style={{ flex: 1 }}>
+            <ScrollView ref={scrollRef}>
+                <View style={{ flex: 1, justifyContent: 'space-between' }}>
                     <View style={{ flex: 1 }}>
-                        <FlatList
-                            data={chat}
-                            keyExtractor={(_, i) => i.toString()}
-                            renderItem={renderMessage}
-                            contentContainerStyle={{ flex: 1 }}
-                        />
+                        <View style={{ flex: 1 }}>
+                            <FlatList
+                                data={chat}
+                                keyExtractor={(_, i) => i.toString()}
+                                renderItem={renderMessage}
+                                contentContainerStyle={{ flex: 1 }}
+                            />
+                        </View>
+                        {
+                            pendingMessage.length > 0 && (
+                                <View style={[styles.msgWrapper, styles.userMSGWrapper]}>
+                                    <View style={[styles.msgContainer, styles.userMSGContainer]}>
+                                        <Text style={[styles.msg, styles.userMSG]}>{pendingMessage}</Text>
+                                        {
+                                            isPredicting && <ActivityIndicator color={Colors.userMessage} style={styles.inPending} />
+                                        }
+                                    </View>
+                                </View>
+                            )
+                        }
                     </View>
                     {
-                        pendingMessage.length > 0 && (
-                            <View style={[styles.msgWrapper, styles.userMSGWrapper]}>
-                                <View style={[styles.msgContainer, styles.userMSGContainer]}>
-                                    <Text style={[styles.msg, styles.userMSG]}>{pendingMessage}</Text>
-                                    {
-                                        isPredicting && <ActivityIndicator color={Colors.userMessage} style={styles.inPending} />
-                                    }
-                                </View>
-                            </View>
-                        )
+                        isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
                     }
                 </View>
-                {
-                    isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
-                }
             </ScrollView>
             {keyboardInput()}
         </View>
@@ -190,20 +191,17 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
     emptyContainer: {
-        justifyContent: 'space-around',
+        justifyContent: 'space-between',
         alignItems: 'center',
     },
     keyboardInputContainer: {
-        position: 'absolute',
-        bottom: 15,
-        left: 15,
-        right: 15,
         backgroundColor: Colors.accent,
-        height: 50,
-        borderRadius: 30,
         paddingHorizontal: 20,
         flexDirection: "row",
         alignItems: 'center',
+        borderRadius: 30,
+        height: 50,
+        margin: 15,
     },
     placeHolder: {
         height: 80,
