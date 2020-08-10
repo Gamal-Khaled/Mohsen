@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { LayoutAnimation } from 'react-native';
+import { LayoutAnimation, NativeModules, AppState, AppStateStatus } from 'react-native';
 
 import ChatScreen from 'screens/ChatScreen/ChatScreen';
 import SpeechToTextService from 'services/SpeechToTextService';
@@ -9,7 +9,7 @@ import TTSService from 'services/TTSService';
 import ChatMessage from 'models/ChatMessage';
 import AssisstantResponse, { Choice } from 'models/AssisstantResponse';
 
-enum AssisstantState {
+export enum AssisstantState {
     NO_PENDING_COMMAND,
     WAITING_FOR_FOLLOW_UP,
     WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
@@ -24,6 +24,8 @@ interface State {
     choicesToDisplay?: Choice[];
 }
 
+const snowboyService = NativeModules.SnowboyServiceModule;
+
 export default class App extends PureComponent<{}, State> {
     state: State = {
         chat: [],
@@ -35,6 +37,9 @@ export default class App extends PureComponent<{}, State> {
     }
 
     async componentDidMount() {
+        snowboyService.stopService();
+        AppState.addEventListener('change', this.onAppStateChange);
+
         await SnowboyService.initialize();
         SpeechToTextService.initialize({
             onSpeechStartHandler: this.onSpeechStartHandler.bind(this),
@@ -48,15 +53,28 @@ export default class App extends PureComponent<{}, State> {
 
         SnowboyService.removeAllListeners("msg-active");
         SnowboyService.addEventListener("msg-active", async (e: any) => {
-            await SnowboyService.stop();
-            SpeechToTextService.start();
+            if (AppState.currentState === "active") {
+                await SnowboyService.stop();
+                SpeechToTextService.start();
+            }
         });
 
-        TTSService.speak('Hi, my name is Mohssen how can I help you.', SnowboyService.start);
+        SnowboyService.start();
     };
+
+    async componentWillUnmount() {
+        AppState.removeEventListener('change', this.onAppStateChange);
+    }
 
     componentWillUpdate() {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+
+    onAppStateChange = async (state: AppStateStatus) => {
+        console.log('onAppStateChange', state)
+        if (state !== "active" && !await snowboyService.isSnowboyServiceRunning()) {
+            await snowboyService.startService();
+        }
     }
 
     onSpeechStartHandler = (e: any) => this.setState({ isListening: true });

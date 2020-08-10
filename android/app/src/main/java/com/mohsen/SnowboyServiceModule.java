@@ -53,8 +53,9 @@ public class SnowboyServiceModule extends ReactContextBaseJavaModule {
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.getName().equals(service.service.getClassName())) {
                 promise.resolve(true);
+                return;
             }
         }
-        promise.reject("Not Running");
+        promise.resolve(false);
     }
 }
