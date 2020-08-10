@@ -53,7 +53,7 @@ const App = () => {
     })
   };
   const addAlarm = () => {
-    ReactNativeAlarm.addAlarm("after 1 hour")
+    ReactNativeAlarm.setAlarm("9 PM")
     .then(() => {
       console.log("Alarm Seted");
     })
