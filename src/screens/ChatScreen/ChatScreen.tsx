@@ -123,11 +123,11 @@ export default ({
                             )
                         }
                     </View>
-                    {
-                        isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
-                    }
                 </View>
             </ScrollView>
+            {
+                isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
+            }
             {keyboardInput()}
         </View>
     );

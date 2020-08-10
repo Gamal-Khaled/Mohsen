@@ -63,6 +63,15 @@ class VirtualAssisstant {
             }
         }
 
+        if (results[0] === "UNKNOWN") {
+            return {
+                commandUnderstood: true,
+                displayChoices: false,
+                getVoiceInput: false,
+                userMessage: "Sorry I couldn't understand that."
+            }
+        }
+
         const prediction = BackendResponsesParser.parsePrediction(results);
         if (this.supportedCommands[prediction.intent]) {
             const commandExecuter = this.supportedCommands[prediction.intent];
@@ -107,7 +116,7 @@ class VirtualAssisstant {
 
         const prediction = BackendResponsesParser.parsePrediction([this.state.intent, newEntities]);
         const commandExecuter = this.supportedCommands[prediction.intent];
-        
+
         this.state.params = {
             ...this.state.params,
             ...commandExecuter.extractParamsFromEntities(prediction.entities)
