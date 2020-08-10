@@ -18,7 +18,7 @@ import {
 
 const snowboyService = NativeModules.SnowboyServiceModule; 
 import snowboy from "react-native-snowboy";
-//import ReactNativeAlarm from 'react-native-react-native-alarm';
+import ReactNativeAlarm from 'react-native-react-native-alarm';
 import FetchWrapper from './src/service/FetchWrapper';
 
 const App = () => {
@@ -52,8 +52,14 @@ const App = () => {
       console.log("Snowboy Service Not Running");
     })
   };
-  const startHeadlessService = () => {
-    snowboyService.startHeadlessService();
+  const addAlarm = () => {
+    ReactNativeAlarm.addAlarm("after 1 hour")
+    .then(() => {
+      console.log("Alarm Seted");
+    })
+    .catch(() => {
+      console.log("Alarm Failed Seted");
+    })
   }
   const sendToDB = () => {
     const fetchWrapper = new FetchWrapper('https://cs495-705cf.firebaseio.com');
@@ -81,8 +87,8 @@ const App = () => {
         onPress={checkServiceStatus}
       />
       <Button
-        title="Send data to DB"
-        onPress={sendToDB}
+        title="Add Alarm"
+        onPress={addAlarm}
       />
     </View>
   );
