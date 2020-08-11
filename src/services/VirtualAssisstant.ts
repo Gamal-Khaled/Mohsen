@@ -1,3 +1,6 @@
+import database from '@react-native-firebase/database';
+import auth from '@react-native-firebase/auth';
+
 import MLModeslsAPIHandler from "apis/MLModeslsAPIHandler";
 import AssisstantResponse, { Choice } from "models/AssisstantResponse";
 import CallCommandExecuter from "commandExecuters/CallCommandExecuter";
@@ -15,7 +18,7 @@ interface AssistantState {
 
 const initialState = {
     params: {},
-    followUpCounter: 0,
+    followUpCounter: 1,
 }
 
 class VirtualAssisstant {
@@ -64,6 +67,13 @@ class VirtualAssisstant {
         }
 
         if (results[0] === "UNKNOWN") {
+            const userId = auth().currentUser?.uid || "ANONYMOUS";
+            database().ref(`users/${userId}/unknownCommands`).push({
+                intent: results[0],
+                entities: results[1],
+                input,
+            })
+
             return {
                 commandUnderstood: true,
                 displayChoices: false,
@@ -79,6 +89,13 @@ class VirtualAssisstant {
             const commandProcessingResponse = await commandExecuter.processCommand(extractedParams as any);
 
             if (commandProcessingResponse.commandUnderstood) {
+                const userId = auth().currentUser?.uid || "ANONYMOUS";
+                database().ref(`users/${userId}/understoodCommands`).push({
+                    intent: prediction.intent,
+                    params: extractedParams,
+                    numberOfTakes: 1,
+                })
+
                 this.state = { ...initialState };
             } else {
                 this.state.followUpCounter = 1;
@@ -125,12 +142,26 @@ class VirtualAssisstant {
         const commandProcessingResponse = await commandExecuter.processCommand(this.state.params as any);
 
         if (commandProcessingResponse.commandUnderstood) {
-            this.state = { ...initialState };
+            const userId = auth().currentUser?.uid || "ANONYMOUS";
+            database().ref(`users/${userId}/understoodCommands`).push({
+                intent: prediction.intent,
+                params: this.state.params,
+                numberOfTakes: this.state.followUpCounter,
+            })
 
+            this.state = { ...initialState };
             return commandProcessingResponse;
         } else {
             this.state.followUpCounter++;
             if (this.state.followUpCounter === 3) {
+                const userId = auth().currentUser?.uid || "ANONYMOUS";
+                database().ref(`users/${userId}/commandsThatTookTooLong`).push({
+                    intent: prediction.intent,
+                    params: this.state.params,
+                    numberOfTakes: 3,
+                })
+
+                this.state = { ...initialState };
                 return {
                     commandUnderstood: true,
                     displayChoices: false,
@@ -154,12 +185,26 @@ class VirtualAssisstant {
         const commandProcessingResponse = await commandExecuter.processCommand(this.state.params as any);
 
         if (commandProcessingResponse.commandUnderstood) {
-            this.state = { ...initialState };
+            const userId = auth().currentUser?.uid || "ANONYMOUS";
+            database().ref(`users/${userId}/understoodCommands`).push({
+                intent: this.state.intent,
+                params: this.state.params,
+                numberOfTakes: this.state.followUpCounter,
+            })
 
+            this.state = { ...initialState };
             return commandProcessingResponse;
         } else {
             this.state.followUpCounter++;
             if (this.state.followUpCounter === 3) {
+                const userId = auth().currentUser?.uid || "ANONYMOUS";
+                database().ref(`users/${userId}/commandsThatTookTooLong`).push({
+                    intent: this.state.intent,
+                    params: this.state.params,
+                    numberOfTakes: 3,
+                })
+
+                this.state = { ...initialState };
                 return {
                     commandUnderstood: true,
                     displayChoices: false,
