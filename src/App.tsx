@@ -1,13 +1,14 @@
 import React, { PureComponent } from 'react';
 import { LayoutAnimation, NativeModules, AppState, AppStateStatus, ScrollView } from 'react-native';
 
-import ChatScreen from 'screens/ChatScreen/ChatScreen';
+import ChatScreen from 'screens/chat/ChatScreen';
 import SpeechToTextService from 'services/SpeechToTextService';
 import SnowboyService from 'services/SnowboyService';
 import VirtualAssisstant from 'services/VirtualAssisstant';
 import TTSService from 'services/TTSService';
 import ChatMessage from 'models/ChatMessage';
 import AssisstantResponse, { Choice } from 'models/AssisstantResponse';
+import SignInScreen from 'screens/signIn/SignInScreen';
 
 export enum AssisstantState {
     NO_PENDING_COMMAND,
@@ -253,18 +254,21 @@ export default class App extends PureComponent<{}, State> {
             choicesToDisplay
         } = this.state;
 
+        // return (
+        //     <ChatScreen
+        //         chat={chat}
+        //         isPredicting={isPredicting}
+        //         pendingMessage={pendingMessage}
+        //         isListening={isListening}
+        //         choicesToDisplay={choicesToDisplay}
+        //         onChoicePress={this.forwardToAssistant}
+        //         onMicIconPress={() => this.startListening(true)}
+        //         onTextInputSubmit={this.onTextInputSubmit}
+        //         scrollRef={ref => this.scrollRef = ref}
+        //     />
+        // );
         return (
-            <ChatScreen
-                chat={chat}
-                isPredicting={isPredicting}
-                pendingMessage={pendingMessage}
-                isListening={isListening}
-                choicesToDisplay={choicesToDisplay}
-                onChoicePress={this.forwardToAssistant}
-                onMicIconPress={() => this.startListening(true)}
-                onTextInputSubmit={this.onTextInputSubmit}
-                scrollRef={ref => this.scrollRef = ref}
-            />
-        );
+            <SignInScreen />
+        )
     }
 };
