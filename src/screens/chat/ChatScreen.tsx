@@ -1,222 +1,275 @@
-import React, { useState } from 'react';
-import {
-    Text,
-    View,
-    FlatList,
-    StyleSheet,
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    Dimensions,
-    TextInput,
-    TouchableOpacity
-} from 'react-native';
+import React, { PureComponent } from 'react';
+import { LayoutAnimation, NativeModules, AppState, AppStateStatus, ScrollView } from 'react-native';
+import auth from '@react-native-firebase/auth';
+import { NavigationInjectedProps } from 'react-navigation';
 
+import SpeechToTextService from 'services/SpeechToTextService';
+import SnowboyService from 'services/SnowboyService';
+import VirtualAssisstant from 'services/VirtualAssisstant';
+import TTSService from 'services/TTSService';
 import ChatMessage from 'models/ChatMessage';
-import Colors from 'assets/Colors';
-import { Choice } from 'models/AssisstantResponse';
-import UserMessage from './UserMessage';
-import AssisstantMessage from './AssisstantMessage';
+import AssisstantResponse, { Choice } from 'models/AssisstantResponse';
+import Chat from './Chat';
 
-const { height } = Dimensions.get('window');
+export enum AssisstantState {
+    NO_PENDING_COMMAND,
+    WAITING_FOR_FOLLOW_UP,
+    WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
+}
 
-interface Props {
+interface State {
     chat: ChatMessage[];
     pendingMessage: string;
     isPredicting: boolean;
     isListening: boolean;
+    currentAssisstantState: AssisstantState;
     choicesToDisplay?: Choice[];
-    onChoicePress: (selectedChoice: Choice) => void;
-    onMicIconPress: () => void;
-    onTextInputSubmit: (text: string) => void;
-    scrollRef?: ((instance: ScrollView | null) => void);
+    speak: boolean;
 }
 
-export default ({
-    chat,
-    pendingMessage,
-    isPredicting,
-    isListening,
-    choicesToDisplay,
-    onChoicePress,
-    onMicIconPress,
-    onTextInputSubmit,
-    scrollRef
-}: Props) => {
-    const [inputText, setInputText] = useState("");
+const snowboyService = NativeModules.SnowboyServiceModule;
 
-    const renderMessage = ({ item, index }: { item: ChatMessage, index: number }) => item.msg.length > 0 ? (
-        item.userMessage ? (
-            <UserMessage message={item} />
-        ) : (
-                <AssisstantMessage
-                    message={item}
-                    choicesToDisplay={chat.length - 1 == index ? choicesToDisplay : undefined}
-                    onChoicePress={onChoicePress}
-                />
-            )
-    ) : <View />;
+export default class ChatScreen extends PureComponent<NavigationInjectedProps, State> {
+    state: State = {
+        chat: [],
+        pendingMessage: "",
+        isPredicting: false,
+        isListening: false,
+        currentAssisstantState: AssisstantState.NO_PENDING_COMMAND,
+        choicesToDisplay: [],
+        speak: true,
+    }
+    scrollRef: ScrollView | null = null;
 
-    const onSumitKeyboardInput = () => {
-        onTextInputSubmit(inputText);
-        setInputText("");
+    async componentDidMount() {
+        snowboyService.stopService();
+        AppState.addEventListener('change', this.onAppStateChange);
+
+        await SnowboyService.initialize();
+        SpeechToTextService.initialize({
+            onSpeechStartHandler: this.onSpeechStartHandler.bind(this),
+            onSpeechEndHandler: this.onSpeechEndHandler.bind(this),
+            onSpeechResultsHandler: this.onSpeechResultsHandler.bind(this),
+            onSpeechPartialResultsHandler: this.onSpeechPartialResultsHandler.bind(this),
+            onSpeechVolumeChangedHandler: this.onSpeechVolumeChangedHandler.bind(this),
+            onSpeechErrorHandler: this.onSpeechErrorHandler.bind(this),
+            onSpeechRecognizedHandler: this.onSpeechRecognizedHandler.bind(this),
+        })
+
+        SnowboyService.removeAllListeners("msg-active");
+        SnowboyService.addEventListener("msg-active", _ => {
+            this.startListening(true);
+        });
+
+        SnowboyService.start();
+
+        // auth().signOut();
+    };
+
+    async componentWillUnmount() {
+        AppState.removeEventListener('change', this.onAppStateChange);
     }
 
-    const keyboardInput = () => (
-        <View style={styles.keyboardInputContainer}>
-            <TextInput
-                value={inputText}
-                onChangeText={setInputText}
-                style={styles.keyboardInput}
-                placeholder='Say "Hey Mohsen"'
-                placeholderTextColor={Colors.primaryText}
-                onSubmitEditing={onSumitKeyboardInput}
-            />
-            <TouchableOpacity onPress={onMicIconPress}>
-                <Image
-                    source={require("assets/images/microphone-solid.png")}
-                    style={styles.micIcon}
-                />
-            </TouchableOpacity>
-        </View>
-    )
+    componentWillUpdate() {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setTimeout(() => {
+            this.scrollRef?.scrollToEnd({ animated: true });
+        }, 20);
+    }
 
-    const isEmpty = () => chat.length + pendingMessage.length === 0;
+    onAppStateChange = async (state: AppStateStatus) => {
+        if (state !== "active" && !await snowboyService.isSnowboyServiceRunning()) {
+            await snowboyService.startService();
+        }
+    }
 
-    if (isEmpty()) {
-        return (
-            <View style={[styles.container, styles.emptyContainer]}>
-                <View />
-                <Text style={styles.emptyText}>Hi, my name is Mohsen how can I help you.</Text>
-                {
-                    isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
+    startListening = async (speak: boolean) => {
+        this.setState({ speak });
+        await SnowboyService.stop();
+        SpeechToTextService.start();
+    }
+
+    onSpeechVolumeChangedHandler = (e: any) => null;
+    onSpeechRecognizedHandler = (e: any) => null;
+    onSpeechStartHandler = (e: any) => this.setState({ isListening: true });
+    onSpeechEndHandler = (e: any) => this.setState({ isListening: false });
+
+    onSpeechResultsHandler = (e: any) => {
+        this.setState({
+            pendingMessage: e.value[0],
+            isPredicting: true,
+        }, async () => {
+            this.forwardToAssistant(e.value[0]);
+        });
+    }
+
+    onSpeechPartialResultsHandler = (e: any) => {
+        this.setState({ pendingMessage: e.value });
+    }
+
+    onSpeechErrorHandler = (e: any) => {
+        SnowboyService.start();
+        this.setState({
+            chat: [
+                ...this.state.chat, {
+                    msg: "Something went wrong please try again later.",
+                    userMessage: false,
                 }
-                {keyboardInput()}
-            </View>
+            ], isListening: false
+        })
+
+        if (this.state.speak)
+            TTSService.speak('Something went wrong please try again later.');
+    }
+
+    onTextInputSubmit = async (text: string) => {
+        await SnowboyService.stop();
+        this.setState({
+            pendingMessage: text,
+            isPredicting: true,
+            speak: false,
+        }, async () => {
+            this.forwardToAssistant(text);
+        });
+    }
+
+    forwardToAssistant = async (input: string | Choice) => {
+        let assisstantResponse: AssisstantResponse;
+        switch (this.state.currentAssisstantState) {
+            case AssisstantState.NO_PENDING_COMMAND:
+                assisstantResponse = await VirtualAssisstant.processUserInput(input as string);
+                break;
+
+            case AssisstantState.WAITING_FOR_FOLLOW_UP:
+                assisstantResponse = await VirtualAssisstant.followUpOnCommand(input as string);
+                break;
+
+            case AssisstantState.WAITING_FOR_FOLLOW_UP_WITH_CHOICES:
+                assisstantResponse = await VirtualAssisstant.followUpOnCommandByUserChoice(input as Choice);
+                break;
+        }
+
+        if (assisstantResponse.commandUnderstood) {
+            this.setState({
+                pendingMessage: "",
+                isPredicting: false,
+                isListening: false,
+                currentAssisstantState: AssisstantState.NO_PENDING_COMMAND,
+                chat: [
+                    ...this.state.chat,
+                    {
+                        msg: this.state.pendingMessage,
+                        userMessage: true,
+                    },
+                    {
+                        msg: assisstantResponse.userMessage,
+                        userMessage: false,
+                        onClickUrl: assisstantResponse.onClickUrl,
+                        thumbnail: assisstantResponse.thumbnail,
+                        mapData: assisstantResponse.mapData,
+                    },
+                ],
+                choicesToDisplay: undefined,
+            });
+
+            const execute = async () => {
+                if (assisstantResponse.execute) {
+                    const commandResponse = await assisstantResponse.execute();
+                    if (!commandResponse.done && commandResponse.message) {
+                        this.setState({
+                            chat: [
+                                ...this.state.chat, {
+                                    msg: commandResponse.message,
+                                    userMessage: false,
+                                    onClickUrl: assisstantResponse.onClickUrl,
+                                    thumbnail: assisstantResponse.thumbnail,
+                                }
+                            ]
+                        });
+                        if (this.state.speak)
+                            TTSService.speak(commandResponse.message);
+                    }
+                }
+                SnowboyService.start();
+            }
+
+            if (this.state.speak) {
+                TTSService.speak(assisstantResponse.userMessage.split(".")[0], execute);
+            } else {
+                execute();
+            }
+        } else {
+            if (assisstantResponse.getVoiceInput) {
+                this.setState({
+                    currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP,
+                    choicesToDisplay: assisstantResponse.choices,
+                    chat: [
+                        ...this.state.chat,
+                        {
+                            msg: this.state.pendingMessage,
+                            userMessage: true,
+                        },
+                        {
+                            msg: assisstantResponse.userMessage,
+                            userMessage: false,
+                            onClickUrl: assisstantResponse.onClickUrl,
+                            thumbnail: assisstantResponse.thumbnail,
+                        },
+                    ],
+                });
+
+                if (this.state.speak) {
+                    TTSService.speak(assisstantResponse.userMessage, SpeechToTextService.start);
+                } else {
+                    SpeechToTextService.start();
+                }
+            } else if (assisstantResponse.displayChoices) {
+                TTSService.speak(assisstantResponse.userMessage);
+                this.setState({
+                    currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
+                    choicesToDisplay: assisstantResponse.choices,
+                    chat: [
+                        ...this.state.chat,
+                        {
+                            msg: this.state.pendingMessage,
+                            userMessage: true,
+                        },
+                        {
+                            msg: assisstantResponse.userMessage,
+                            userMessage: false,
+                            onClickUrl: assisstantResponse.onClickUrl,
+                            thumbnail: assisstantResponse.thumbnail,
+                        },
+                    ],
+                });
+            }
+
+            this.setState({ pendingMessage: "", isPredicting: false });
+        }
+    }
+
+    render() {
+        const {
+            isPredicting,
+            chat,
+            pendingMessage,
+            isListening,
+            choicesToDisplay
+        } = this.state;
+
+        return (
+            <Chat
+                chat={chat}
+                isPredicting={isPredicting}
+                pendingMessage={pendingMessage}
+                isListening={isListening}
+                choicesToDisplay={choicesToDisplay}
+                onChoicePress={this.forwardToAssistant}
+                onMicIconPress={() => this.startListening(true)}
+                onTextInputSubmit={this.onTextInputSubmit}
+                scrollRef={ref => this.scrollRef = ref}
+                navigation={this.props.navigation}
+            />
         );
     }
-
-    return (
-        <View style={styles.container}>
-            <ScrollView ref={scrollRef}>
-                <View style={{ flex: 1, justifyContent: 'space-between' }}>
-                    <View style={{ flex: 1 }}>
-                        <View style={{ flex: 1 }}>
-                            <FlatList
-                                data={chat}
-                                keyExtractor={(_, i) => i.toString()}
-                                renderItem={renderMessage}
-                                contentContainerStyle={{ flex: 1 }}
-                            />
-                        </View>
-                        {
-                            pendingMessage.length > 0 && (
-                                <View style={[styles.msgWrapper, styles.userMSGWrapper]}>
-                                    <View style={[styles.msgContainer, styles.userMSGContainer]}>
-                                        <Text style={[styles.msg, styles.userMSG]}>{pendingMessage}</Text>
-                                        {
-                                            isPredicting && <ActivityIndicator color={Colors.userMessage} style={styles.inPending} />
-                                        }
-                                    </View>
-                                </View>
-                            )
-                        }
-                    </View>
-                </View>
-            </ScrollView>
-            {
-                isListening && <Image source={require("images/listening.gif")} style={styles.listening} />
-            }
-            {keyboardInput()}
-        </View>
-    );
-}
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingVertical: 10,
-        justifyContent: 'space-between',
-        backgroundColor: Colors.primary,
-        height
-    },
-    divider: {
-        height: 1,
-        width: '100%',
-        backgroundColor: Colors.accent,
-    },
-    text: {
-        color: '#fff',
-    },
-    msgWrapper: {
-        padding: 10,
-        width: '100%',
-        paddingBottom: 0,
-        paddingRight: 100,
-        alignItems: "flex-start",
-    },
-    userMSGWrapper: {
-        paddingRight: 10,
-        paddingLeft: 100,
-        alignItems: "flex-end",
-    },
-    msgContainer: {
-        borderRadius: 10,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        backgroundColor: Colors.systemMessageBackground,
-    },
-    userMSGContainer: {
-        backgroundColor: Colors.userMessageBackground,
-        flexDirection: 'row',
-    },
-    msg: {
-        color: Colors.systemMessage,
-    },
-    userMSG: {
-        color: Colors.userMessage,
-    },
-    inPending: {
-        marginLeft: 10,
-    },
-    listening: {
-        height: 100,
-        width: 100,
-        alignSelf: 'center',
-    },
-    emptyText: {
-        textAlign: 'center',
-        color: Colors.primaryText,
-        fontSize: 15,
-    },
-    emptyContainer: {
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    keyboardInputContainer: {
-        backgroundColor: Colors.accent,
-        paddingHorizontal: 20,
-        flexDirection: "row",
-        alignItems: 'center',
-        borderRadius: 30,
-        height: 50,
-        margin: 15,
-    },
-    placeHolder: {
-        height: 80,
-    },
-    keyboardInput: {
-        flex: 1,
-        padding: 0,
-        height: 40,
-        fontSize: 16,
-        color: Colors.primaryText,
-        borderColor: Colors.primary,
-    },
-    micIcon: {
-        tintColor: Colors.primaryText,
-        height: 27,
-        width: 35,
-        resizeMode: 'contain'
-    }
-})
+};

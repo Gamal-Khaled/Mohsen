@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, Alert } from 'react-native';
+import { NavigationInjectedProps } from 'react-navigation';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
 import { EmailIcon, EyeIcon, EyeOffIcon, PersonIcon } from 'common/icons';
 import ValidatingInput from 'common/components/ValidatingInput';
@@ -8,23 +10,61 @@ import LoadingSpinnerHandler from 'common/components/LoadingSpinnerHandler';
 import Button from 'common/components/Button';
 import Colors from 'assets/Colors';
 
-export default (): React.ReactElement => {
+export default (props: NavigationInjectedProps): React.ReactElement => {
     const [userName, setUserName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [initializing, setInitializing] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    let inputs: ValidatingInput[] = [];
+    const saveInputRef = (ref: ValidatingInput) => inputs.push(ref);
+
+    const onAuthStateChanged = (user: FirebaseAuthTypes.User | null) => {
+        setInitializing(false);
+
+        if (!!user) {
+            props.navigation.navigate("ChatScreen");
+        }
+    }
+
+    useEffect(() => {
+        const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+        return subscriber; // unsubscribe on unmount
+    }, []);
+
 
     const isValidForm = () => {
         return !isEmpty(userName) && !validateEmail(email) && !validatePassword(password);
     }
 
-    const onSignUpButtonPress = (): void => {
+    const onSignUpButtonPress = () => {
+        inputs.forEach(ref => ref.forceValidate());
+        if (isValidForm()) {
+            setLoading(true);
+            auth().createUserWithEmailAndPassword(email, password)
+                .then(() => {
+                    setLoading(false);
+                    props.navigation.navigate("ChatScreen");
+                })
+                .catch(error => {
+                    setLoading(false);
+                    if (error.code === 'auth/email-already-in-use') {
+                        Alert.alert("Error", 'That email address is already in use!');
+                    } else if (error.code === 'auth/invalid-email') {
+                        Alert.alert("Error", 'That email address is invalid!');
+                    } else {
+                        Alert.alert("Error", error.message)
+                    }
 
+                    console.error(error);
+                });
+        }
     };
 
     const onSignInButtonPress = (): void => {
-        // props.navigation.navigate('SignInScreen');
+        props.navigation.navigate('SignInScreen');
     };
 
     const onPasswordIconPress = (): void => {
@@ -33,17 +73,17 @@ export default (): React.ReactElement => {
 
     return (
         <LoadingSpinnerHandler
-            loading={loading}
+            loading={initializing || loading}
             contentContainerStyle={styles.container}
         >
             <Text style={styles.title}>Welcome To Mohsen</Text>
             <View style={styles.formContainer}>
                 <ValidatingInput
+                    ref={saveInputRef}
                     containerStyle={styles.formInput}
                     autoCapitalize='none'
                     placeholder='Username'
                     icon={PersonIcon}
-
                     value={userName}
                     onChangeText={setUserName}
                     textStyle={styles.inputText}
@@ -51,6 +91,7 @@ export default (): React.ReactElement => {
                     placeholderTextColor="#fff"
                 />
                 <ValidatingInput
+                    ref={saveInputRef}
                     containerStyle={styles.formInput}
                     autoCapitalize='none'
                     placeholder='Email'
@@ -62,6 +103,7 @@ export default (): React.ReactElement => {
                     placeholderTextColor="#fff"
                 />
                 <ValidatingInput
+                    ref={saveInputRef}
                     containerStyle={styles.formInput}
                     autoCapitalize='none'
                     secureTextEntry={!passwordVisible}

@@ -1,35 +1,67 @@
-import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, Alert } from 'react-native';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { NavigationInjectedProps } from 'react-navigation';
 
-import {
-    EyeIcon,
-    EyeOffIcon,
-    PersonIcon,
-} from 'common/icons';
+import { EyeIcon, EyeOffIcon, PersonIcon } from 'common/icons';
 import Button from 'common/components/Button';
 import ValidatingInput from 'common/components/ValidatingInput';
 import LoadingSpinnerHandler from 'common/components/LoadingSpinnerHandler';
 import { validatePassword, validateEmail } from 'services/Validator';
 import Colors from 'assets/Colors';
 
-export default (): React.ReactElement => {
+export default (props: NavigationInjectedProps): React.ReactElement => {
+    const [initializing, setInitializing] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [email, setEmail] = React.useState(__DEV__ ? "gamal.khaled11@gmail.com" : "");
     const [password, setPassword] = React.useState(__DEV__ ? "12345678" : "");
     const [passwordVisible, setPasswordVisible] = React.useState(false);
-    const [loading, setLoading] = React.useState(false);
 
     let inputs: ValidatingInput[] = [];
+
+    const onAuthStateChanged = (user: FirebaseAuthTypes.User | null) => {
+        setInitializing(false);
+
+        if (!!user) {
+            props.navigation.navigate("ChatScreen");
+        }
+    }
+
+    useEffect(() => {
+        const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+        return subscriber; // unsubscribe on unmount
+    }, []);
 
     const isValidForm = () => {
         return !validateEmail(email) && !validatePassword(password);
     }
 
-    const onSignInButtonPress = async () => {
+    const onSignInButtonPress = () => {
+        inputs.forEach(ref => ref.forceValidate());
+        if (isValidForm()) {
+            setLoading(true);
+            auth().signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    setLoading(false);
+                    props.navigation.navigate("ChatScreen");
+                })
+                .catch(error => {
+                    setLoading(false);
+                    if (error.code === 'auth/email-already-in-use') {
+                        Alert.alert("Error", 'That email address is already in use!');
+                    } else if (error.code === 'auth/invalid-email') {
+                        Alert.alert("Error", 'That email address is invalid!');
+                    } else {
+                        Alert.alert("Error", error.message)
+                    }
 
+                    console.error(error);
+                });
+        }
     };
 
     const onSignUpButtonPress = (): void => {
-        // props.navigation.navigate('SignUpScreen');
+        props.navigation.navigate('SignUpScreen');
     };
 
     const onPasswordIconPress = (): void => {
@@ -40,7 +72,7 @@ export default (): React.ReactElement => {
 
     return (
         <LoadingSpinnerHandler
-            loading={loading}
+            loading={initializing || loading}
             contentContainerStyle={styles.container}
         >
             <Text style={styles.title}>Welcome To Mohsen</Text>
