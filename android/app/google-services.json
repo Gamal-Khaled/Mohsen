@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "933769012408",
+    "firebase_url": "https://mohsen-f7115.firebaseio.com",
+    "project_id": "mohsen-f7115",
+    "storage_bucket": "mohsen-f7115.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933769012408:android:e1623ccbabc675752a004d",
+        "android_client_info": {
+          "package_name": "com.mohsen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "933769012408-5o8usrd1j731lq7gt2m3h5r823ldic54.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA64TX_2xpImd1qNQM3-8i9kdJ--Yp8_h8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "933769012408-5o8usrd1j731lq7gt2m3h5r823ldic54.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

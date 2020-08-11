@@ -12,6 +12,8 @@
   "dependencies": {
     "@react-native-community/async-storage": "react-native-community/async-storage",
     "@react-native-community/voice": "^1.0.0",
+    "@react-native-firebase/app": "^8.3.0",
+    "@react-native-firebase/auth": "^8.3.1",
     "@react-native-mapbox-gl/maps": "^8.1.0-rc.2",
     "react": "16.9.0",
     "react-native": "0.61.5",
