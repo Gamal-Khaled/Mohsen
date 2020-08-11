@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { LayoutAnimation, NativeModules, AppState, AppStateStatus, ScrollView } from 'react-native';
-import auth from '@react-native-firebase/auth';
 import { NavigationInjectedProps } from 'react-navigation';
 
 import SpeechToTextService from 'services/SpeechToTextService';
@@ -10,6 +9,7 @@ import TTSService from 'services/TTSService';
 import ChatMessage from 'models/ChatMessage';
 import AssisstantResponse, { Choice } from 'models/AssisstantResponse';
 import Chat from './Chat';
+import SuggetionsSchedular from 'services/SuggetionsSchedular';
 
 export enum AssisstantState {
     NO_PENDING_COMMAND,
@@ -63,7 +63,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
 
         SnowboyService.start();
 
-        // auth().signOut();
+        SuggetionsSchedular.start();
     };
 
     async componentWillUnmount() {

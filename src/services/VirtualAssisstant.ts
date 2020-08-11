@@ -68,7 +68,7 @@ class VirtualAssisstant {
 
         if (results[0] === "UNKNOWN") {
             const userId = auth().currentUser?.uid || "ANONYMOUS";
-            database().ref(`users/${userId}/unknownCommands`).push({
+            database().ref(`users/${userId}/${new Date().getHours()}/unknownCommands`).push({
                 intent: results[0],
                 entities: results[1],
                 input,
@@ -90,7 +90,7 @@ class VirtualAssisstant {
 
             if (commandProcessingResponse.commandUnderstood) {
                 const userId = auth().currentUser?.uid || "ANONYMOUS";
-                database().ref(`users/${userId}/understoodCommands`).push({
+                database().ref(`users/${userId}/${new Date().getHours()}/understoodCommands`).push({
                     intent: prediction.intent,
                     params: extractedParams,
                     numberOfTakes: 1,
@@ -143,7 +143,7 @@ class VirtualAssisstant {
 
         if (commandProcessingResponse.commandUnderstood) {
             const userId = auth().currentUser?.uid || "ANONYMOUS";
-            database().ref(`users/${userId}/understoodCommands`).push({
+            database().ref(`users/${userId}/${new Date().getHours()}/understoodCommands`).push({
                 intent: prediction.intent,
                 params: this.state.params,
                 numberOfTakes: this.state.followUpCounter,
@@ -155,7 +155,7 @@ class VirtualAssisstant {
             this.state.followUpCounter++;
             if (this.state.followUpCounter === 3) {
                 const userId = auth().currentUser?.uid || "ANONYMOUS";
-                database().ref(`users/${userId}/commandsThatTookTooLong`).push({
+                database().ref(`users/${userId}/${new Date().getHours()}/commandsThatTookTooLong`).push({
                     intent: prediction.intent,
                     params: this.state.params,
                     numberOfTakes: 3,
@@ -186,7 +186,7 @@ class VirtualAssisstant {
 
         if (commandProcessingResponse.commandUnderstood) {
             const userId = auth().currentUser?.uid || "ANONYMOUS";
-            database().ref(`users/${userId}/understoodCommands`).push({
+            database().ref(`users/${userId}/${new Date().getHours()}/understoodCommands`).push({
                 intent: this.state.intent,
                 params: this.state.params,
                 numberOfTakes: this.state.followUpCounter,
@@ -198,7 +198,7 @@ class VirtualAssisstant {
             this.state.followUpCounter++;
             if (this.state.followUpCounter === 3) {
                 const userId = auth().currentUser?.uid || "ANONYMOUS";
-                database().ref(`users/${userId}/commandsThatTookTooLong`).push({
+                database().ref(`users/${userId}/${new Date().getHours()}/commandsThatTookTooLong`).push({
                     intent: this.state.intent,
                     params: this.state.params,
                     numberOfTakes: 3,
