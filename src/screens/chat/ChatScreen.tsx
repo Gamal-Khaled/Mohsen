@@ -55,7 +55,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
         snowboyService.stopService();
         AppState.addEventListener('change', this.onAppStateChange);
 
-        // await SnowboyService.initialize();
+        await SnowboyService.initialize();
         SpeechToTextService.initialize({
             onSpeechStartHandler: this.onSpeechStartHandler.bind(this),
             onSpeechEndHandler: this.onSpeechEndHandler.bind(this),
@@ -74,8 +74,6 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
         this.startSnowBoy();
 
         SuggetionsSchedular.start();
-
-        this.onTextInputSubmit("where is elgiza");
     };
 
     async componentWillUnmount() {
