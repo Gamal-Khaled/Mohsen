@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { LayoutAnimation, NativeModules, AppState, AppStateStatus, ScrollView } from 'react-native';
+import { LayoutAnimation, NativeModules, AppState, AppStateStatus, ScrollView, View, StyleSheet, Text, CheckBox } from 'react-native';
 import { NavigationInjectedProps } from 'react-navigation';
 
 import SpeechToTextService from 'services/SpeechToTextService';
@@ -10,11 +10,18 @@ import ChatMessage from 'models/ChatMessage';
 import AssisstantResponse, { Choice } from 'models/AssisstantResponse';
 import Chat from './Chat';
 import SuggetionsSchedular from 'services/SuggetionsSchedular';
+import Colors from 'assets/Colors';
+import Switch from 'common/components/switch';
 
 export enum AssisstantState {
     NO_PENDING_COMMAND,
     WAITING_FOR_FOLLOW_UP,
     WAITING_FOR_FOLLOW_UP_WITH_CHOICES,
+}
+
+export enum CommandType {
+    VOICE,
+    TYPED,
 }
 
 interface State {
@@ -25,6 +32,8 @@ interface State {
     currentAssisstantState: AssisstantState;
     choicesToDisplay?: Choice[];
     speak: boolean;
+    enableVoiceCommands: boolean;
+    commandType?: CommandType;
 }
 
 const snowboyService = NativeModules.SnowboyServiceModule;
@@ -38,6 +47,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
         currentAssisstantState: AssisstantState.NO_PENDING_COMMAND,
         choicesToDisplay: [],
         speak: true,
+        enableVoiceCommands: false,
     }
     scrollRef: ScrollView | null = null;
 
@@ -45,7 +55,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
         snowboyService.stopService();
         AppState.addEventListener('change', this.onAppStateChange);
 
-        await SnowboyService.initialize();
+        // await SnowboyService.initialize();
         SpeechToTextService.initialize({
             onSpeechStartHandler: this.onSpeechStartHandler.bind(this),
             onSpeechEndHandler: this.onSpeechEndHandler.bind(this),
@@ -61,9 +71,11 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
             this.startListening(true);
         });
 
-        SnowboyService.start();
+        this.startSnowBoy();
 
         SuggetionsSchedular.start();
+
+        this.onTextInputSubmit("where is elgiza");
     };
 
     async componentWillUnmount() {
@@ -80,6 +92,8 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
     onAppStateChange = async (state: AppStateStatus) => {
         if (state !== "active" && !await snowboyService.isSnowboyServiceRunning()) {
             await snowboyService.startService();
+        } else if (state === "active") {
+            await snowboyService.stopService();
         }
     }
 
@@ -87,6 +101,12 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
         this.setState({ speak });
         await SnowboyService.stop();
         SpeechToTextService.start();
+    }
+
+    startSnowBoy = () => {
+        if (this.state.enableVoiceCommands) {
+            SnowboyService.start();
+        }
     }
 
     onSpeechVolumeChangedHandler = (e: any) => null;
@@ -98,6 +118,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
         this.setState({
             pendingMessage: e.value[0],
             isPredicting: true,
+            commandType: CommandType.VOICE,
         }, async () => {
             this.forwardToAssistant(e.value[0]);
         });
@@ -108,15 +129,18 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
     }
 
     onSpeechErrorHandler = (e: any) => {
-        SnowboyService.start();
-        this.setState({
-            chat: [
-                ...this.state.chat, {
-                    msg: "Something went wrong please try again later.",
-                    userMessage: false,
-                }
-            ], isListening: false
-        })
+        console.log("onSpeechErrorHandler", e);
+        this.startSnowBoy();
+        if (e.message !== "7/No match") {
+            this.setState({
+                chat: [
+                    ...this.state.chat, {
+                        msg: "Something went wrong please try again later.",
+                        userMessage: false,
+                    }
+                ], isListening: false
+            })
+        }
 
         if (this.state.speak)
             TTSService.speak('Something went wrong please try again later.');
@@ -128,6 +152,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
             pendingMessage: text,
             isPredicting: true,
             speak: false,
+            commandType: CommandType.TYPED,
         }, async () => {
             this.forwardToAssistant(text);
         });
@@ -166,7 +191,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
                         userMessage: false,
                         onClickUrl: assisstantResponse.onClickUrl,
                         thumbnail: assisstantResponse.thumbnail,
-                        mapData: assisstantResponse.mapData,
+                        mapData: assisstantResponse.mapsAPIData,
                     },
                 ],
                 choicesToDisplay: undefined,
@@ -190,7 +215,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
                             TTSService.speak(commandResponse.message);
                     }
                 }
-                SnowboyService.start();
+                this.startSnowBoy();
             }
 
             if (this.state.speak) {
@@ -199,7 +224,7 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
                 execute();
             }
         } else {
-            if (assisstantResponse.getVoiceInput) {
+            if (assisstantResponse.getVoiceInput && this.state.commandType === CommandType.VOICE) {
                 this.setState({
                     currentAssisstantState: AssisstantState.WAITING_FOR_FOLLOW_UP,
                     choicesToDisplay: assisstantResponse.choices,
@@ -248,28 +273,67 @@ export default class ChatScreen extends PureComponent<NavigationInjectedProps, S
         }
     }
 
+    toggleVoiceCommands = async () => {
+        const { enableVoiceCommands } = this.state;
+
+        if (enableVoiceCommands) {
+            await SnowboyService.stop();
+        } else {
+            SnowboyService.start();
+        }
+        this.setState({ enableVoiceCommands: !enableVoiceCommands });
+    }
+
     render() {
         const {
             isPredicting,
             chat,
             pendingMessage,
             isListening,
-            choicesToDisplay
+            choicesToDisplay,
+            enableVoiceCommands
         } = this.state;
 
         return (
-            <Chat
-                chat={chat}
-                isPredicting={isPredicting}
-                pendingMessage={pendingMessage}
-                isListening={isListening}
-                choicesToDisplay={choicesToDisplay}
-                onChoicePress={this.forwardToAssistant}
-                onMicIconPress={() => this.startListening(true)}
-                onTextInputSubmit={this.onTextInputSubmit}
-                scrollRef={ref => this.scrollRef = ref}
-                navigation={this.props.navigation}
-            />
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <Text style={styles.headerText}>Enable Voice Commands</Text>
+                    <Switch
+                        value={enableVoiceCommands}
+                        onChangeValue={this.toggleVoiceCommands}
+                    />
+                </View>
+                <Chat
+                    chat={chat}
+                    isPredicting={isPredicting}
+                    pendingMessage={pendingMessage}
+                    isListening={isListening}
+                    choicesToDisplay={choicesToDisplay}
+                    onChoicePress={this.forwardToAssistant}
+                    onMicIconPress={() => this.startListening(true)}
+                    onTextInputSubmit={this.onTextInputSubmit}
+                    scrollRef={ref => this.scrollRef = ref}
+                    navigation={this.props.navigation}
+                />
+            </View>
         );
     }
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: Colors.primary,
+    },
+    header: {
+        padding: 15,
+        flexDirection: 'row',
+        justifyContent: "space-between",
+        alignItems: 'center'
+    },
+    headerText: {
+        color: Colors.primaryText,
+        fontWeight: 'bold',
+        fontSize: 18
+    }
+})

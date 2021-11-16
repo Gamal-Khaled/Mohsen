@@ -4,12 +4,12 @@ import { baseURL } from "./constants";
 class MLModeslsAPIHandler {
     private fetchWrapper = new FetchWrapper(baseURL);
 
-    predictIntent = (text: string): Promise<any> => (
-        this.fetchWrapper.get(`/predict/intent`, { text })
+    predictIntent = (sentense: string): Promise<any> => (
+        this.fetchWrapper.post(`/predict/intent`, { sentense })
     )
 
-    predictEntities = (text: string): Promise<any> => (
-        this.fetchWrapper.get(`/predict/ner`, { text })
+    predictEntities = (sentense: string): Promise<any> => (
+        this.fetchWrapper.post(`/predict/entities`, { sentense })
     )
 }
 

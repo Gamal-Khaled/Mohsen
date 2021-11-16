@@ -41,7 +41,7 @@ export default class MapsSearchCommandExecuter extends CommandExecuter<Params> {
                 displayChoices: false,
                 getVoiceInput: false,
                 userMessage: "Here you go.",
-                mapData: choosenLocation.center,
+                mapsAPIData: choosenLocation.center,
                 onClickUrl: `geo:${choosenLocation.center[1]},${choosenLocation.center[0]}`
             }
         }
@@ -74,7 +74,7 @@ export default class MapsSearchCommandExecuter extends CommandExecuter<Params> {
                 displayChoices: false,
                 getVoiceInput: false,
                 userMessage: "Here you go.",
-                mapData: mapsAPIResponse.features[0].center,
+                mapsAPIData: mapsAPIResponse.features[0].center,
                 onClickUrl: `geo:${mapsAPIResponse.feature[0].center[1]},${mapsAPIResponse.feature[0].center[0]}`
             }
         }

@@ -2,11 +2,17 @@ interface Params {
     [key: string]: any;
 }
 
+const commotDefaultHeaders = {
+    "Content-Type": "application/json"
+}
+
 export default class FetchWrapper {
     baseURL: string;
+    defaultHeaders: Params;
 
-    constructor(baseURL: string) {
+    constructor(baseURL: string, defaultHeader: Params = commotDefaultHeaders) {
         this.baseURL = baseURL;
+        this.defaultHeaders = defaultHeader;
     }
 
     get = (endPoint: string, params: Params = {}) => {
@@ -23,6 +29,7 @@ export default class FetchWrapper {
 
             fetch(this.baseURL + endPoint + paramsString, {
                 method: "GET",
+                headers: this.defaultHeaders
             })
                 .then(response => {
                     if (response.ok) {
@@ -40,7 +47,8 @@ export default class FetchWrapper {
         return new Promise((resolve, reject) => {
             fetch(this.baseURL + endPoint, {
                 method: "POST",
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                headers: this.defaultHeaders
             })
                 .then(response => {
                     if (response.ok) {
@@ -58,7 +66,8 @@ export default class FetchWrapper {
         return new Promise((resolve, reject) => {
             fetch(this.baseURL + endPoint, {
                 method: "PUT",
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                headers: this.defaultHeaders
             })
                 .then(response => {
                     if (response.ok) {
@@ -76,7 +85,8 @@ export default class FetchWrapper {
         return new Promise((resolve, reject) => {
             fetch(this.baseURL + endPoint, {
                 method: "DELETE",
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                headers: this.defaultHeaders
             })
                 .then(response => {
                     if (response.ok) {

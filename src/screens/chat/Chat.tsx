@@ -11,14 +11,14 @@ import {
     TextInput,
     TouchableOpacity
 } from 'react-native';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { NavigationInjectedProps } from 'react-navigation';
 
 import ChatMessage from 'models/ChatMessage';
 import Colors from 'assets/Colors';
 import { Choice } from 'models/AssisstantResponse';
 import UserMessage from './UserMessage';
 import AssisstantMessage from './AssisstantMessage';
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
-import { NavigationInjectedProps } from 'react-navigation';
 
 const { height } = Dimensions.get('window');
 

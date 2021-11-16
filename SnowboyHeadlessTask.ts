@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import SpeechToTextService from "services/SpeechToTextService";
 import TTSService from "services/TTSService";
 import AssisstantResponse, { Choice } from "models/AssisstantResponse";
-import { AssisstantState } from './src/App';
+import { AssisstantState } from './src/screens/chat/ChatScreen';
 import VirtualAssisstant from "services/VirtualAssisstant";
 
 const currentAssisstantStateKey = "@BACKGROUND:CURRENT_ASSISSTANT_STATE";

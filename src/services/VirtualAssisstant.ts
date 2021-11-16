@@ -32,8 +32,7 @@ class VirtualAssisstant {
 
     private makeIntentPrediction = async (text: string) => {
         try {
-            const response = await MLModeslsAPIHandler.predictIntent(text);
-            return response.result;
+            return MLModeslsAPIHandler.predictIntent(text);
         } catch (e) {
             return { error: true, errorMessage: e };
         }
@@ -41,21 +40,22 @@ class VirtualAssisstant {
 
     private makeEntitiesPrediction = async (text: string) => {
         try {
-            const response = await MLModeslsAPIHandler.predictEntities(text);
-            return response.result;
+            return MLModeslsAPIHandler.predictEntities(text);
         } catch (e) {
             return { error: true, errorMessage: e };
         }
     }
 
     processUserInput = async (input: string): Promise<AssisstantResponse> => {
+        
         const results = [
             await this.makeIntentPrediction(input),
             await this.makeEntitiesPrediction(input),
         ];
+        
 
         let error = false;
-        results.forEach(res => error = error || !!res.error);
+        results.forEach(res => error = error || !res.status);
 
         if (error) {
             return {
@@ -66,11 +66,11 @@ class VirtualAssisstant {
             }
         }
 
-        if (results[0] === "UNKNOWN") {
+        if (results[0].intent === "UNKNOWN") {
             const userId = auth().currentUser?.uid || "ANONYMOUS";
             database().ref(`users/${userId}/${new Date().getHours()}/unknownCommands`).push({
-                intent: results[0],
-                entities: results[1],
+                intent: results[0].intent,
+                entities: results[1].entities,
                 input,
             })
 
@@ -78,7 +78,7 @@ class VirtualAssisstant {
                 commandUnderstood: true,
                 displayChoices: false,
                 getVoiceInput: false,
-                userMessage: "Sorry I couldn't understand that."
+                userMessage: "Sorry I can't do that yet."
             }
         }
 
@@ -131,7 +131,7 @@ class VirtualAssisstant {
             }
         }
 
-        const prediction = BackendResponsesParser.parsePrediction([this.state.intent, newEntities]);
+        const prediction = BackendResponsesParser.parsePrediction([{ intent: this.state.intent }, newEntities]);
         const commandExecuter = this.supportedCommands[prediction.intent];
 
         this.state.params = {
